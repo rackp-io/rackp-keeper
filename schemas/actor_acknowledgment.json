@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/actor_acknowledgment.json",
+  "title": "ACTOR_ACKNOWLEDGMENT",
+  "description": "Message sent by Actor to Referee in response to ACTOR_NOTIFICATION. Declares the Actor's Keeper endpoint so the Referee can query fee deposit status. Must be sent regardless of whether the Actor intends to submit a FEE_DEPOSIT.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "ACTOR_ACKNOWLEDGMENT" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier from the corresponding ACTOR_NOTIFICATION."
+    },
+    "actor_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the Actor sending this acknowledgment."
+    },
+    "actor_keeper_endpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Endpoint URL of the Keeper the Actor uses. The Referee will use this to query FEE_STATUS."
+    },
+    "norm_profile_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "(Optional) Norm Profile IDs the Actor is operating under for this assessment. Multiple IDs are allowed when the Actor operates under multiple Norms simultaneously. If omitted, the Standard Norm (rackp.standard.v1) is applied."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this message was sent."
+    },
+    "signature": { "$ref": "common.json#/$defs/signature" }
+  },
+  "required": [
+    "type",
+    "incident_id",
+    "actor_id",
+    "actor_keeper_endpoint",
+    "timestamp",
+    "signature"
+  ]
+}

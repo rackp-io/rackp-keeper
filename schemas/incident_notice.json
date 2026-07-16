@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/incident_notice.json",
+  "title": "INCIDENT_NOTICE",
+  "description": "Sent by Referee to each party's Keeper (Kc for Claimant, Ka for Actor) to communicate protocol events related to an incident. This is the dedicated Referee-to-Keeper notification channel, distinct from CLAIM_ANCHOR which each terminal uses for self-anchoring to its own Keeper. One message is sent per Keeper per event. Keepers use this message to manage the escrow lifecycle. The notice is signed by the Referee: because it drives escrow transitions (release, appeal hold, withdrawal settlement), the Keeper MUST verify the signature against the Referee's registered public_key (obtained from the Referee's REFEREE_PROFILE in a split-Keeper topology) and MUST bind the incident to the referee_id of the first notice it accepts, rejecting any later notice from a different referee_id. An unverifiable or mismatched notice MUST NOT drive any escrow transition.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "INCIDENT_NOTICE" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier."
+    },
+    "referee_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the sending Referee. The Keeper verifies the signature against this terminal's registered public_key and binds the incident to it on the first accepted notice."
+    },
+    "recipient_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the target Keeper."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "INCIDENT_OPEN",
+        "ASSESSMENT_COMPLETE",
+        "APPEAL_RECEIVED",
+        "APPEAL_ACCEPTED",
+        "APPEAL_REJECTED",
+        "ASSESSMENT_WITHDRAWN"
+      ],
+      "description": "The protocol event being reported. INCIDENT_OPEN: a new incident has been opened and this Keeper's party is involved; the Keeper starts the assessment-deadline timer (STD-027) once it also holds a FEE_DEPOSIT for this incident. ASSESSMENT_COMPLETE: CONTRIBUTION_RESULT has been issued; stop the assessment-deadline timer and start the FEE_RELEASE timer using additional_appeal_limit_datetime. APPEAL_RECEIVED: an appeal has been filed; suspend the FEE_RELEASE timer. APPEAL_ACCEPTED: the appeal is accepted and re-assessment will begin; reset the FEE_RELEASE timer, restart the assessment-deadline timer, and await a new ASSESSMENT_COMPLETE. APPEAL_REJECTED: the appeal is rejected; resume the FEE_RELEASE timer. ASSESSMENT_WITHDRAWN: the assessment has been withdrawn by both parties; cancel the timers and process cancellation fee settlement."
+    },
+    "assessment_deadline_hours": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "(Optional) Present when event_type is INCIDENT_OPEN. The Referee's declared assessment deadline in hours, which MUST match the assessment_deadline_hours in its published REFEREE_PROFILE (STD-027). The Keeper uses this value for the assessment-deadline timer that governs FEE_REFUND_CLAIM eligibility (STD-028). If omitted, the Standard Norm default of 720 hours applies."
+    },
+    "cert_id": {
+      "type": "string",
+      "description": "(Optional) The cert_id of the associated CONTRIBUTION_RESULT. Present when event_type is ASSESSMENT_COMPLETE."
+    },
+    "additional_appeal_limit_datetime": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "(Optional) Appeal deadline (ISO 8601). Present when event_type is ASSESSMENT_COMPLETE. The Keeper uses this value to schedule FEE_RELEASE."
+    },
+    "cancellation_fee": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000000,
+      "multipleOf": 0.001,
+      "description": "(Optional) Present when event_type is ASSESSMENT_WITHDRAWN. The Referee's declared fee.cancellation_fee (from its REFEREE_PROFILE), carried here so a party's Keeper can settle the withdrawal without separately holding the Referee's profile. Each notified Keeper deducts this amount from the escrow balance it holds before returning the remainder to its depositor (RFC-0001 Section 6.17). Defaults to 0 if omitted. Bounded to at most 3 decimal places (every ISO 4217 currency, including BHD/KWD/OMR) so JCS number serialization round-trips exactly across implementations."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this notice was issued."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "Ed25519 signature over the canonical JSON (RFC 8785) of all fields excluding this field, made with the Referee's key. The Keeper verifies it against the referee_id's registered public_key before acting on the notice."
+    }
+  },
+  "required": ["type", "incident_id", "referee_id", "recipient_id", "event_type", "timestamp", "signature"]
+}

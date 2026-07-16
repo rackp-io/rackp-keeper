@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/assessment_withdrawal.json",
+  "title": "ASSESSMENT_WITHDRAWAL",
+  "description": "Joint withdrawal of an active assessment before a CONTRIBUTION_RESULT is issued. Requires signatures from both Actor and Claimant. A single-party withdrawal request MUST be rejected by the Referee.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "ASSESSMENT_WITHDRAWAL" },
+    "incident_id": { "$ref": "common.json#/$defs/uuid" },
+    "actor_id": { "$ref": "common.json#/$defs/terminal_id" },
+    "claimant_id": { "$ref": "common.json#/$defs/terminal_id" },
+    "reason": {
+      "type": "string",
+      "description": "Human-readable reason for withdrawal (optional)"
+    },
+    "actor_signature": {
+      "type": "string",
+      "description": "Ed25519 signature of the Actor over the canonical (JCS, RFC 8785) form of this message excluding both signature fields. Base64url-encoded."
+    },
+    "claimant_signature": {
+      "type": "string",
+      "description": "Ed25519 signature of the Claimant over the canonical (JCS, RFC 8785) form of this message excluding both signature fields. Base64url-encoded."
+    },
+    "timestamp": { "$ref": "common.json#/$defs/iso8601_timestamp" }
+  },
+  "required": [
+    "type",
+    "incident_id",
+    "actor_id",
+    "claimant_id",
+    "actor_signature",
+    "claimant_signature",
+    "timestamp"
+  ]
+}

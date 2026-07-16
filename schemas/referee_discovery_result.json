@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/referee_discovery_result.json",
+  "title": "REFEREE_DISCOVERY_RESULT",
+  "description": "Response to a REFEREE_DISCOVERY_REQUEST, returned by the receiving discovery endpoint (a Keeper node, a Norm-managed registry, or any other discovery-capable endpoint). Carries the REFEREE_PROFILE objects matching the request's filters, as published by their Referees — the discovery endpoint does not certify their content. Reputation is verified independently via REFEREE_STATS_QUERY to each Referee's Keeper.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "REFEREE_DISCOVERY_RESULT" },
+    "profiles": {
+      "type": "array",
+      "items": { "$ref": "referee_profile.json" },
+      "description": "REFEREE_PROFILE objects matching the request's filters. Empty if none matched. Contains at most `limit` entries (default 10) from the corresponding REFEREE_DISCOVERY_REQUEST."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of entries in profiles."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this result was issued."
+    }
+  },
+  "required": ["type", "profiles", "count", "timestamp"]
+}

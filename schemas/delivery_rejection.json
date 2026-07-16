@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/delivery_rejection.json",
+  "title": "DELIVERY_REJECTION",
+  "description": "Rejection response of the baseline HTTP transport binding (docs/TRANSPORT-BINDING.md) — not an RFC-0001 Section 6 protocol message. Returned with an HTTP 4xx status when a receiver definitively rejects a protocol message. A rejection is a delivery outcome, not a delivery failure: the sender must not blindly retry the identical message (a corrected message is a new message). signature is RECOMMENDED — a signed rejection strengthens the sender's delivery attempt record (STD-030).",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "DELIVERY_REJECTION" },
+    "reason": {
+      "type": "string",
+      "enum": ["MALFORMED", "SCHEMA_VIOLATION", "SIGNATURE_INVALID", "UNKNOWN_TERMINAL", "SEQUENCE_CONFLICT", "PROTOCOL_REJECTED", "TOO_LARGE"],
+      "description": "Machine-readable rejection reason."
+    },
+    "detail": {
+      "type": "string",
+      "description": "(Optional) Human-readable explanation."
+    },
+    "received_at": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Receiver's clock at the time of rejection."
+    },
+    "receiver_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "(Optional) Terminal ID of the rejecting receiver."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "(Optional, RECOMMENDED) Ed25519 signature over the canonical body excluding this field."
+    }
+  },
+  "required": ["type", "reason", "received_at"]
+}

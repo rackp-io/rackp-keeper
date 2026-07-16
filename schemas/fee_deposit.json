@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/fee_deposit.json",
+  "title": "FEE_DEPOSIT",
+  "description": "Message sent by Actor or Claimant to deposit fees into the Keeper's escrow. The Claimant SHOULD send this before or at the same time as ASSESSMENT_REQUEST, and it must be confirmed before the Referee issues a FEE_STATUS_QUERY. The Actor sends this after ACTOR_ACKNOWLEDGMENT. See RFC-0002 Section 1 for payment flow details.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "FEE_DEPOSIT" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier."
+    },
+    "depositor_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the depositing party (Actor or Claimant)."
+    },
+    "amount": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000000,
+      "multipleOf": 0.001,
+      "description": "Amount to deposit into escrow. The expected amount per role is declared in the Referee's REFEREE_PROFILE fee.deposit (default when none is declared: the requesting party bears the full fee.amount and the counterparty is NOT_REQUIRED; a declared allocation may share the cost between parties) — see STD-029. A deposit below the expected amount by the deadline is treated as NOT_DEPOSITED in fee_compliance (STD-026). Bounded to at most 3 decimal places (every ISO 4217 currency, including BHD/KWD/OMR) so JCS number serialization round-trips exactly across implementations."
+    },
+    "currency": {
+      "type": "string",
+      "description": "Currency code (ISO 4217, e.g., 'USD', 'JPY', 'EUR')."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this deposit message was sent."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "Ed25519 signature of the depositing party (depositor_id) over the canonical JSON of all fields excluding this field (STD-033). Verified by the Keeper against depositor_id's registered public_key before the escrow is credited."
+    }
+  },
+  "required": ["type", "incident_id", "depositor_id", "amount", "currency", "timestamp", "signature"]
+}

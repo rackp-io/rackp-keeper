@@ -1,0 +1,33 @@
+RACKP Reference Implementation License
+Copyright (c) 2026 RACKP Project.
+
+Patent pending.
+
+---
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software, to use, copy, modify, merge, publish, and
+distribute the software and derivative works thereof, subject to the
+following conditions:
+
+1. The above copyright notice and this notice shall be included in all
+   copies or substantial portions of the software.
+
+2. PATENT RESERVATION. This license grants copyright permissions only.
+   No patent license is granted under this license, whether express or
+   implied. Implementing, deploying, or operating the RACK Protocol —
+   whether with this software, a derivative of it, or any other
+   implementation — is governed by the RACK Protocol Source-Available
+   License, including its license fee terms:
+
+     https://github.com/rackp-io/rackp/blob/main/LICENSE
+
+---
+
+DISCLAIMER
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. THE AUTHORS SHALL NOT BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY ARISING FROM USE OF THE SOFTWARE. CONTRIBUTION RESULTS PRODUCED
+UNDER THE RACK PROTOCOL ARE NOT LEGAL JUDGMENTS. FINAL LEGAL DETERMINATION
+REMAINS THE RESPONSIBILITY OF THE APPLICABLE JUDICIAL AUTHORITY.

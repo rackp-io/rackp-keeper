@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/fee_claim.json",
+  "title": "FEE_CLAIM",
+  "description": "Message sent by the Referee to the Keeper to explicitly request payment for a completed assessment. The Keeper validates the FEE_RELEASE timer state and responds with FEE_CLAIM_RESULT. This pull-based mechanism complements the push-based FEE_RELEASE flow: a Referee MAY send FEE_CLAIM when the timer has elapsed but FEE_RELEASE has not yet been received. The Keeper MUST reject and respond with FEE_CLAIM_RESULT(REJECTED) if: the timer has not elapsed; a valid ASSESSMENT_APPEAL is pending; cert_id is not recognized (i.e. not found in an ASSESSMENT_ISSUED anchor for the Referee's own Keeper, or in an INCIDENT_NOTICE(ASSESSMENT_COMPLETE) record for a party Keeper in a split-Keeper topology); payment has already been released for this incident; or the escrow has transitioned to EXPIRED after the assessment deadline elapsed (STD-028). On acceptance the Keeper releases the full escrowed balance it holds — the Referee does not specify an expected amount. See RFC-0001 Section 6.22 and RFC-0002 Section 1.2 for details.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "FEE_CLAIM" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier."
+    },
+    "referee_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the claiming Referee."
+    },
+    "cert_id": {
+      "type": "string",
+      "description": "cert_id of the target CONTRIBUTION_RESULT. The Keeper cross-references this against the ASSESSMENT_ISSUED anchor."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Three-letter uppercase currency code (e.g., 'USD', 'JPY', 'EUR'). ISO 4217 is recommended but not enforced. Used by the Keeper to record the currency context of this claim; the released amount and currency are determined solely by the escrowed balance."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this claim was sent."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "Ed25519 digital signature over the canonical JSON of all fields excluding this field."
+    }
+  },
+  "required": ["type", "incident_id", "referee_id", "cert_id", "currency", "timestamp", "signature"]
+}

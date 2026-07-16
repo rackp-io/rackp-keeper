@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/fee_status_query.json",
+  "title": "FEE_STATUS_QUERY",
+  "description": "Message sent by Referee to a Keeper to confirm fee deposit status for a specific party. The Referee issues this separately to the Actor's Keeper and the Claimant's Keeper. SHOULD be sent before issuing a CONTRIBUTION_RESULT (per RFC-0002 Section 1.2.1).",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "FEE_STATUS_QUERY" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier to check fee status for."
+    },
+    "referee_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the Referee sending this query."
+    },
+    "terminal_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the party whose deposit status is being queried. The Keeper returns FEE_STATUS_RESULT for this party only."
+    },
+    "prior_incident_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+      "description": "(Optional) UUIDs of prior incidents declared by the Claimant in the ASSESSMENT_REQUEST. The Keeper verifies whether each incident exists with a ASSESSMENT_ISSUED anchor and returns the result in FEE_STATUS_RESULT as verified_prior_incidents.",
+      "minItems": 1
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this message was sent."
+    }
+  },
+  "required": ["type", "incident_id", "referee_id", "terminal_id", "timestamp"]
+}

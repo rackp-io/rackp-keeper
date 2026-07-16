@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/claim_anchor.json",
+  "title": "CLAIM_ANCHOR",
+  "type": "object",
+  "properties": {
+    "type": { "const": "CLAIM_ANCHOR" },
+    "terminal_id": { "$ref": "common.json#/$defs/terminal_id" },
+    "timestamp": { "$ref": "common.json#/$defs/iso8601_timestamp" },
+    "data_hash": { "$ref": "common.json#/$defs/sha256_hash" },
+    "signature": { "$ref": "common.json#/$defs/signature" },
+    "claim_id": { "$ref": "common.json#/$defs/uuid" },
+    "sequence_number": { "type": "integer" },
+    "public_key": { "$ref": "common.json#/$defs/public_key" },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "SESSION_START",
+        "ASSESSMENT_ISSUED",
+        "POH_CERT_ISSUED",
+        "APPEAL_RECEIVED",
+        "APPEAL_ACCEPTED",
+        "APPEAL_REJECTED",
+        "NAMED_AS_ACTOR",
+        "WITHDRAWAL_ISSUED",
+        "EVIDENCE_REJECTED"
+      ],
+      "description": "(Optional) Semantic label for significant protocol events. Routine anchoring by any terminal omits this field. Actor/Claimant: use SESSION_START at session initiation only to declare the active Norm Profile; omit for all other anchors. Referee: MUST include the appropriate value for each protocol action — the Keeper reacts mechanically to these values (ASSESSMENT_ISSUED triggers escrow release and increments assessment_count; POH_CERT_ISSUED is the Proof of Human Involvement equivalent and increments poh_cert_count, kept separate from assessment_count so PoHI volume does not pollute incident-assessment reputation metrics; all Referee values update statistics). Referee action_type anchors MUST be sent to the Referee's own Keeper only. For operational notifications to parties' Keepers (Kc, Ka), use INCIDENT_NOTICE instead."
+    },
+    "cert_id": {
+      "type": "string",
+      "description": "(Optional) The cert_id of the CONTRIBUTION_RESULT or POH_CERTIFICATE associated with this anchor. Present when action_type == ASSESSMENT_ISSUED or action_type == POH_CERT_ISSUED. Used by the Referee's own Keeper for archival reference and license reconciliation."
+    },
+    "norm_profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "norm_profile_id": {
+            "type": "string",
+            "description": "Reverse-domain notation ID of a supported Norm profile (e.g., rackp.standard.v1, jp.go.mlit.automotive.v1)."
+          },
+          "norm_fetch_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL from which this Norm profile is retrieved. The Keeper MUST record this URL in association with the terminal_id and norm_profile_id."
+          }
+        },
+        "required": ["norm_profile_id", "norm_fetch_url"]
+      },
+      "description": "Required when action_type == SESSION_START. Declares all Norm profiles this terminal supports. At least one entry is required. The Keeper records each norm_profile_id and norm_fetch_url in association with this terminal_id."
+    },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "(Optional) The ID of the corresponding incident. Used together with action_type."
+    }
+  },
+  "required": ["type", "terminal_id", "claim_id", "sequence_number", "timestamp", "data_hash", "signature"],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "sequence_number": { "const": 1 } },
+        "required": ["sequence_number"]
+      },
+      "then": { "required": ["public_key"] }
+    },
+    {
+      "if": {
+        "properties": { "action_type": { "const": "SESSION_START" } },
+        "required": ["action_type"]
+      },
+      "then": { "required": ["norm_profiles"] }
+    }
+  ]
+}

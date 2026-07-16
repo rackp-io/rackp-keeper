@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/common.json",
+  "title": "RACK Protocol Common Definitions",
+  "description": "Shared type definition units used across the protocol",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "UUID v4 format (e.g., 550e8400-e29b-41d4-a716-446655440000)"
+    },
+    "terminal_id": {
+      "$ref": "#/$defs/uuid",
+      "description": "AI agent instance identifier. UUID v4 format (e.g., 550e8400-e29b-41d4-a716-446655440000)"
+    },
+    "iso8601_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 datetime (UTC recommended)"
+    },
+    "sha256_hash": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$",
+      "description": "SHA-256 hash value (64 hexadecimal characters)"
+    },
+    "signature": {
+      "type": "string",
+      "description": "Ed25519 digital signature. The signed payload is the canonicalized message body (all fields except the signature field) per RFC 8785 (JCS). Encoded in unpadded Base64url (no '=' padding). Known-answer vectors: schemas/test-vectors/."
+    },
+    "public_key": {
+      "type": "string",
+      "description": "Ed25519 public key. Unpadded Base64url encoded (no '=' padding). Included only in the CLAIM_ANCHOR where sequence_number == 1. The Keeper stores this in association with the terminal_id."
+    }
+  }
+}

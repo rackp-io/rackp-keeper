@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/referee_stats_result.json",
+  "title": "REFEREE_STATS_RESULT",
+  "description": "Response from the Keeper containing statistical records for a specified Referee. Derived from accumulated CLAIM_ANCHOR records in the Keeper.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "REFEREE_STATS_RESULT" },
+    "terminal_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the queried Referee."
+    },
+    "found": {
+      "type": "boolean",
+      "description": "Whether anchoring records for this terminal_id exist in the Keeper. If false, all statistical fields are omitted."
+    },
+    "assessment_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of CONTRIBUTION_RESULTs issued. Counted from ASSESSMENT_ISSUED anchors. Excludes POH_CERTIFICATEs, which are counted separately in poh_cert_count."
+    },
+    "poh_cert_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of POH_CERTIFICATEs issued. Counted from POH_CERT_ISSUED anchors. Kept separate from assessment_count so Proof of Human Involvement volume does not distort the incident-assessment reputation metrics (appeal_rate, named_as_actor_rate, etc.) whose denominator is assessment_count."
+    },
+    "appeal_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of ASSESSMENT_APPEALs received."
+    },
+    "appeal_rate": {
+      "type": "number",
+      "minimum": 0,
+      "description": "appeal_count / assessment_count. May exceed 1.0 if multiple appeals were filed against the same assessment."
+    },
+    "appealed_assessment_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of distinct assessments that received at least one appeal. Multiple appeals on the same assessment are counted as one."
+    },
+    "appealed_assessment_rate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "appealed_assessment_count / assessment_count."
+    },
+    "appeal_accepted_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of appeals this Referee accepted (APPEAL_ACCEPTED anchors)."
+    },
+    "appeal_rejected_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of appeals this Referee rejected (APPEAL_REJECTED anchors)."
+    },
+    "named_as_actor_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of times this Referee has been named as Actor in another incident (NAMED_AS_ACTOR anchors). A strong signal of assessment quality, as filing costs are borne by the Claimant."
+    },
+    "named_as_actor_rate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "named_as_actor_count / assessment_count."
+    },
+    "anchor_continuity": {
+      "type": "boolean",
+      "description": "Whether the Referee's anchor sequence has no gaps. A gap indicates missing records and is a negative reliability signal."
+    },
+    "active_since": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of the earliest anchoring record for this Referee."
+    },
+    "last_active": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of the most recent anchoring record for this Referee."
+    },
+    "unreceived_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of FIXED-model incidents for which this Keeper holds an ASSESSMENT_ISSUED or POH_CERT_ISSUED anchor but no corresponding FEE_RECEIPT (RFC-0001 Section 6.24). Maintained by the Referee's own Keeper — the endpoint that answers REFEREE_STATS_QUERY — from the receipt copies the Referee is obliged to send it; an escrow-holding Keeper observes the same deficiency as an escrow that never reaches SETTLED. FREE-model incidents are excluded from this count. A persistently non-zero value indicates the Referee may be receiving payment without acknowledging receipt and is a negative trust signal."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this result was issued by the Keeper."
+    }
+  },
+  "required": ["type", "terminal_id", "found", "timestamp"],
+  "if": { "properties": { "found": { "const": true } } },
+  "then": {
+    "required": ["assessment_count", "poh_cert_count", "appeal_count", "appeal_rate", "appealed_assessment_count", "appealed_assessment_rate", "appeal_accepted_count", "appeal_rejected_count", "named_as_actor_count", "named_as_actor_rate", "anchor_continuity", "active_since", "last_active", "unreceived_count"]
+  }
+}

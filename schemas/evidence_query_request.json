@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/evidence_query_request.json",
+  "title": "EVIDENCE_QUERY_REQUEST",
+  "description": "Request from the assessment AI to each terminal for submission of evidence data and statements",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "EVIDENCE_QUERY_REQUEST"
+    },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Identifier of the target incident"
+    },
+    "requester_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the requester (Referee)"
+    },
+    "target_period": {
+      "type": "object",
+      "description": "Time range from which evidence is to be extracted",
+      "properties": {
+        "start": { "$ref": "common.json#/$defs/iso8601_timestamp" },
+        "end": { "$ref": "common.json#/$defs/iso8601_timestamp" }
+      },
+      "required": ["start", "end"],
+      "additionalProperties": false
+    },
+    "required_fields": {
+      "type": "array",
+      "description": "Specific data items whose submission is requested",
+      "items": {
+        "type": "string",
+        "description": "Field name as defined in the applicable Norm profile."
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "response_deadline": { "$ref": "common.json#/$defs/iso8601_timestamp" },
+    "request_human_readable_statement": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a human-readable statement is requested from the responding party. The granularity and required content of the statement may be defined by the applicable Norm profile."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this request was sent."
+    }
+  },
+  "required": [
+    "type",
+    "incident_id",
+    "requester_id",
+    "target_period",
+    "required_fields",
+    "response_deadline",
+    "request_human_readable_statement",
+    "timestamp"
+  ],
+  "additionalProperties": false
+}

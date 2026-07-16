@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/evidence_rejection.json",
+  "title": "EVIDENCE_REJECTION",
+  "description": "Sent by Actor or Claimant to the Referee to explicitly refuse evidence submission in response to an EVIDENCE_QUERY_REQUEST. Upon receipt, the Referee records the rejection via a CLAIM_ANCHOR (action_type: EVIDENCE_REJECTED) and proceeds with assessment reflecting the refusing party's non-participation.",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "EVIDENCE_REJECTION"
+    },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier from the corresponding EVIDENCE_QUERY_REQUEST."
+    },
+    "submitter_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the party refusing evidence submission."
+    },
+    "reason": {
+      "type": "string",
+      "description": "(Optional) Human-readable reason for refusing evidence submission."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature"
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this message was sent."
+    }
+  },
+  "required": ["type", "incident_id", "submitter_id", "signature", "timestamp"]
+}

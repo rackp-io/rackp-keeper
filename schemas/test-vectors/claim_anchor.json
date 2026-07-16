@@ -1,0 +1,24 @@
+{
+  "description": "End-to-end CLAIM_ANCHOR vector covering the full pipeline: anchored_payload -> payload_canonical (JCS) -> data_hash (SHA-256 hex) -> message_body_canonical (JCS of all fields except signature) -> signature (Ed25519, unpadded Base64url). A conforming implementation reproduces every intermediate value exactly.",
+  "secret_key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "anchored_payload": {
+    "event": "draft_saved",
+    "strokes": 412,
+    "duration_s": 95,
+    "note": "手描きセッション",
+    "ratio": 1.0
+  },
+  "payload_canonical": "{\"duration_s\":95,\"event\":\"draft_saved\",\"note\":\"手描きセッション\",\"ratio\":1,\"strokes\":412}",
+  "data_hash": "86d344e3ece5a091d9885251f517ebb6e92912b6651ec228fa743c9bf8d5e317",
+  "message_body_canonical": "{\"claim_id\":\"22222222-2222-4222-8222-222222222222\",\"data_hash\":\"86d344e3ece5a091d9885251f517ebb6e92912b6651ec228fa743c9bf8d5e317\",\"public_key\":\"A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg\",\"sequence_number\":1,\"terminal_id\":\"11111111-1111-4111-8111-111111111111\",\"timestamp\":\"2026-01-01T00:00:00Z\",\"type\":\"CLAIM_ANCHOR\"}",
+  "message": {
+    "type": "CLAIM_ANCHOR",
+    "terminal_id": "11111111-1111-4111-8111-111111111111",
+    "claim_id": "22222222-2222-4222-8222-222222222222",
+    "sequence_number": 1,
+    "timestamp": "2026-01-01T00:00:00Z",
+    "public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+    "data_hash": "86d344e3ece5a091d9885251f517ebb6e92912b6651ec228fa743c9bf8d5e317",
+    "signature": "1i2HY5lSlrFNzeLHW_TJCeUyTeSk1gLgymhVleRj4smo3iIgBJ5pe6our57mo5n4Ikw4KyT9dzGV-yPZL-ZfBw"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/fee_refund_claim.json",
+  "title": "FEE_REFUND_CLAIM",
+  "description": "Message sent by a depositing party (Actor or Claimant) to its own Keeper to reclaim escrowed funds after the Referee's assessment deadline has expired without a CONTRIBUTION_RESULT (STD-028). This pull-based mechanism is the liveness backstop against Referee disappearance: it mirrors FEE_CLAIM (the Referee-side pull against Keeper unavailability). The Keeper validates the assessment-deadline timer state and responds with FEE_REFUND_RESULT. The Keeper MUST reject if: the deadline has not elapsed (including after a reset by APPEAL_ACCEPTED); an ASSESSMENT_COMPLETE notice has been received for the current round; the escrow has already been released, settled, refunded, or returned via withdrawal; or no deposit from this party is held for the incident. On acceptance the full deposited amount is returned with no cancellation fee deduction, and the escrow record transitions to EXPIRED. See RFC-0001 Section 6.25 and RFC-0002 Section 1.2.3 for details.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "FEE_REFUND_CLAIM" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier."
+    },
+    "depositor_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the depositing party reclaiming its funds. MUST match the depositor_id of a FEE_DEPOSIT held by this Keeper for the incident."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this claim was sent."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "Ed25519 digital signature over the canonical JSON of all fields excluding this field."
+    }
+  },
+  "required": ["type", "incident_id", "depositor_id", "timestamp", "signature"]
+}

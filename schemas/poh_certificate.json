@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/poh_certificate.json",
+  "title": "POH_CERTIFICATE",
+  "description": "Proof of Human Involvement certificate issued by a Referee. Certifies the human/AI contribution ratio for a specified anchor range of a terminal's output. Designed to be attached to creative or data outputs to assert provenance. Compatible with C2PA (Coalition for Content Provenance and Authenticity) manifests: a C2PA assertion can reference cert_url to combine tool/environment provenance (C2PA) with human involvement ratio (RACKP).",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "POH_CERTIFICATE"
+    },
+    "cert_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Unique identifier for this certificate."
+    },
+    "issue_date": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Datetime when this certificate was issued."
+    },
+    "referee_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the Referee that issued this certificate."
+    },
+    "subject_terminal_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the subject whose human involvement is certified."
+    },
+    "anchor_range": {
+      "type": "object",
+      "description": "The CLAIM_ANCHOR period evaluated for this certificate. Defined by the requesting application (e.g. per file save, per session, per project).",
+      "properties": {
+        "start": { "$ref": "common.json#/$defs/iso8601_timestamp" },
+        "end":   { "$ref": "common.json#/$defs/iso8601_timestamp" }
+      },
+      "required": ["start", "end"]
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Human/AI contribution ratio assessed over the anchor_range.",
+      "properties": {
+        "human_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Estimated proportion of human involvement (0.0–1.0)."
+        },
+        "ai_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Estimated proportion of AI involvement (0.0–1.0)."
+        },
+        "confidence_level": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW"],
+          "description": "Referee's confidence in the ratio assessment."
+        }
+      },
+      "required": ["human_ratio", "ai_ratio", "confidence_level"]
+    },
+    "keeper": {
+      "type": "object",
+      "description": "The Keeper that holds the Claimant's anchoring records used as the basis for this certificate. Enables independent verification of the anchor chain by any third party.",
+      "properties": {
+        "keeper_id": {
+          "$ref": "common.json#/$defs/terminal_id",
+          "description": "Terminal ID of the Keeper that holds the subject's CLAIM_ANCHOR records."
+        },
+        "keeper_endpoint": {
+          "type": "string",
+          "format": "uri",
+          "description": "Optional endpoint URL of the Keeper for direct chain verification queries."
+        }
+      },
+      "required": ["keeper_id"]
+    },
+    "subject_data_hash": {
+      "$ref": "common.json#/$defs/sha256_hash",
+      "description": "SHA-256 hash of the specific data artifact this certificate is issued for. Provided by the Claimant application at request time. Recipients can independently verify that this certificate corresponds to a given artifact by computing its hash and comparing against this field."
+    },
+    "cert_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Canonical URL where this certificate can be retrieved and independently verified. When integrating with C2PA, this URL can be referenced in a C2PA assertion to combine tool/environment provenance (C2PA) with human involvement ratio (RACKP)."
+    },
+    "proof_hash": {
+      "$ref": "common.json#/$defs/sha256_hash",
+      "description": "SHA-256 of the canonical certificate body (all fields except proof_hash and signature, serialized per RFC 8785). Used to verify certificate integrity independently of the issuing Referee."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "Ed25519 signature by the issuing Referee over the canonical certificate body."
+    }
+  },
+  "required": [
+    "type",
+    "cert_id",
+    "issue_date",
+    "referee_id",
+    "subject_terminal_id",
+    "anchor_range",
+    "provenance",
+    "keeper",
+    "subject_data_hash",
+    "cert_url",
+    "proof_hash",
+    "signature"
+  ]
+}

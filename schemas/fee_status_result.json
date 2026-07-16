@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/fee_status_result.json",
+  "title": "FEE_STATUS_RESULT",
+  "description": "Response from Keeper to Referee confirming fee deposit status for the queried party. Each Keeper responds only for deposits it holds. The Referee issues separate FEE_STATUS_QUERY messages to the Actor's Keeper and the Claimant's Keeper respectively.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "FEE_STATUS_RESULT" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier this status report corresponds to."
+    },
+    "terminal_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the party whose deposit status is being reported."
+    },
+    "deposited": {
+      "type": "boolean",
+      "description": "Whether the queried party's FEE_DEPOSIT has been confirmed by this Keeper."
+    },
+    "deposit_timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when the FEE_DEPOSIT was received. Omitted if deposited is false."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this message was sent by the Keeper."
+    },
+    "prior_assessment_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of prior ASSESSMENT_ISSUED anchors recorded for this incident_id. 0 for a first assessment."
+    },
+    "prior_verdict_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of cert_id values from prior assessments of this incident_id. Empty for first assessments."
+    },
+    "verified_prior_incidents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "incident_id": {
+            "$ref": "common.json#/$defs/uuid",
+            "description": "The prior incident UUID as declared in the ASSESSMENT_REQUEST."
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "True if a ASSESSMENT_ISSUED anchor for this incident_id exists in this Keeper."
+          },
+          "cert_id": {
+            "type": "string",
+            "description": "cert_id from the ASSESSMENT_ISSUED anchor. Omitted if verified is false."
+          }
+        },
+        "required": ["incident_id", "verified"]
+      },
+      "description": "(Optional) Verification results for each incident_id in prior_incident_ids. Present only when the Referee included prior_incident_ids in the FEE_STATUS_QUERY."
+    }
+  },
+  "required": ["type", "incident_id", "terminal_id", "deposited", "timestamp", "prior_assessment_count"],
+  "if": {
+    "properties": { "prior_assessment_count": { "minimum": 1 } },
+    "required": ["prior_assessment_count"]
+  },
+  "then": {
+    "properties": { "prior_verdict_refs": { "minItems": 1 } },
+    "required": ["prior_verdict_refs"]
+  }
+}

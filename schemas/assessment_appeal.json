@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/assessment_appeal.json",
+  "title": "ASSESSMENT_APPEAL",
+  "description": "Sent by Actor or Claimant to the Referee to contest a CONTRIBUTION_RESULT. Must be filed before additional_appeal_limit_datetime. When appeal_grounds.category is NEW_EVIDENCE, additional_evidence is required.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "ASSESSMENT_APPEAL" },
+    "incident_id": { "$ref": "common.json#/$defs/uuid" },
+    "submitter_id": { "$ref": "common.json#/$defs/terminal_id" },
+    "target_assessment_id": {
+      "type": "string",
+      "description": "The ID of the CONTRIBUTION_RESULT being appealed"
+    },
+    "appeal_grounds": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string",
+          "enum": ["FACTUAL_ERROR", "LOGIC_ERROR", "NEW_EVIDENCE", "PROCEDURAL_ISSUE", "NORM_MISAPPLICATION"],
+          "description": "Category of the grounds for appeal"
+        },
+        "description": { "type": "string", "description": "Specific claims being asserted" }
+      },
+      "required": ["category", "description"]
+    },
+    "additional_evidence": {
+      "type": "object",
+      "description": "Additional evidence data serving as the basis for re-examination (structure conforms to EVIDENCE_SUBMISSION)",
+      "properties": {
+        "payload": {
+          "type": "object",
+          "description": "The evidence data body, free-form exactly as EVIDENCE_SUBMISSION.payload. The Referee independently computes the SHA-256 of this object (canonicalized per RFC 8785) and uses that computed value as the verification target against the appellant's Keeper.",
+          "additionalProperties": true
+        },
+        "verification_info": {
+          "type": "object",
+          "properties": {
+            "claim_id": { "$ref": "common.json#/$defs/uuid" },
+            "sequence_number": {
+              "type": "integer",
+              "description": "(Optional) The sequence_number of the corresponding CLAIM_ANCHOR record."
+            },
+            "stored_hash": { "$ref": "common.json#/$defs/sha256_hash" },
+            "keeper_endpoint": { "type": "string", "format": "uri" }
+          },
+          "required": ["claim_id", "stored_hash", "keeper_endpoint"]
+        }
+      },
+      "required": ["payload", "verification_info"]
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this appeal was filed (ISO 8601). Included in the signed payload to establish the sender's claimed filing time."
+    },
+    "signature": { "$ref": "common.json#/$defs/signature" }
+  },
+  "required": [
+    "type",
+    "incident_id",
+    "submitter_id",
+    "target_assessment_id",
+    "appeal_grounds",
+    "timestamp",
+    "signature"
+  ],
+  "if": {
+    "properties": {
+      "appeal_grounds": {
+        "properties": {
+          "category": { "const": "NEW_EVIDENCE" }
+        }
+      }
+    }
+  },
+  "then": {
+    "required": ["additional_evidence"]
+  }
+}

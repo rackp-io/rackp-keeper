@@ -1,0 +1,69 @@
+{
+  "description": "JCS (RFC 8785) canonicalization vectors. 'canonical' is the exact UTF-8 string whose bytes are hashed (data_hash) and signed (signature). An implementation conforms if canonicalize(input) equals canonical, byte for byte.",
+  "vectors": [
+    {
+      "description": "object keys sorted by UTF-16 code units",
+      "input": {
+        "b": 1,
+        "a": 2
+      },
+      "canonical": "{\"a\":2,\"b\":1}"
+    },
+    {
+      "description": "ascii key sorts before non-ascii key",
+      "input": {
+        "あ": "unicode key",
+        "A": "ascii key"
+      },
+      "canonical": "{\"A\":\"ascii key\",\"あ\":\"unicode key\"}"
+    },
+    {
+      "description": "string escapes: control chars, quote, backslash",
+      "input": {
+        "s": "line\nbreak\ttab \"quote\" back\\slash \u0001"
+      },
+      "canonical": "{\"s\":\"line\\nbreak\\ttab \\\"quote\\\" back\\\\slash \\u0001\"}"
+    },
+    {
+      "description": "non-ascii characters are emitted literally",
+      "input": {
+        "msg": "日本語テキスト"
+      },
+      "canonical": "{\"msg\":\"日本語テキスト\"}"
+    },
+    {
+      "description": "numbers: integers and integral float serialize alike",
+      "input": {
+        "n": [
+          0,
+          -1,
+          1.0,
+          42
+        ]
+      },
+      "canonical": "{\"n\":[0,-1,1,42]}"
+    },
+    {
+      "description": "empty containers and empty string",
+      "input": {
+        "empty_obj": {},
+        "empty_arr": [],
+        "empty_str": ""
+      },
+      "canonical": "{\"empty_arr\":[],\"empty_obj\":{},\"empty_str\":\"\"}"
+    },
+    {
+      "description": "nested structures and literals",
+      "input": {
+        "x": [
+          {
+            "k": null,
+            "t": true,
+            "f": false
+          }
+        ]
+      },
+      "canonical": "{\"x\":[{\"f\":false,\"k\":null,\"t\":true}]}"
+    }
+  ]
+}

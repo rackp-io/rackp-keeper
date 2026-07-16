@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/anchor_chain_result.json",
+  "title": "ANCHOR_CHAIN_RESULT",
+  "description": "Response from the Keeper to an ANCHOR_CHAIN_QUERY, carried in the DELIVERY_RECEIPT response field (TRANSPORT-BINDING Section 2). Returns the stored CLAIM_ANCHOR records of the target terminal within the requested window, plus the governing SESSION_START. The returned anchors are the records as stored — including the terminal's own signature — so each anchor is self-authenticating; what rests on the Keeper's attestation (carried by the signed receipt) is completeness: that these are all records held for the terminal in the window, and that no later SESSION_START precedes the window. The requester verifies sequence-number contiguity within the window itself; a missing sequence number indicates a gap in the record.",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "ANCHOR_CHAIN_RESULT"
+    },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Identifier of the incident. Echoed from the corresponding ANCHOR_CHAIN_QUERY."
+    },
+    "target_terminal_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID whose anchor chain is reported. Echoed from the query."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of anchors held for the target terminal within the requested window. MUST be accurate even when anchors is truncated."
+    },
+    "truncated": {
+      "type": "boolean",
+      "description": "True if anchors contains fewer than count entries because the Keeper applied an implementation-defined size cap. The requester MAY narrow the window and re-query to retrieve the remainder. session_start is never omitted due to truncation."
+    },
+    "anchors": {
+      "type": "array",
+      "items": { "$ref": "claim_anchor.json" },
+      "description": "Stored CLAIM_ANCHOR records within the requested window, in ascending sequence_number order, exactly as stored (terminal signature included). May be truncated per truncated."
+    },
+    "session_start": {
+      "anyOf": [
+        { "$ref": "claim_anchor.json" },
+        { "type": "null" }
+      ],
+      "description": "The governing SESSION_START: the most recent stored CLAIM_ANCHOR with action_type SESSION_START whose timestamp is at or before range.start, returned verbatim even when it lies outside the window. Null if no such record exists (the assessment then falls back to the Standard Norm per RFC-0001 Section 9.3). The Keeper's receipt signature attests that no other SESSION_START exists between this record and range.start."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this result was issued."
+    }
+  },
+  "required": [
+    "type",
+    "incident_id",
+    "target_terminal_id",
+    "count",
+    "truncated",
+    "anchors",
+    "session_start",
+    "timestamp"
+  ]
+}

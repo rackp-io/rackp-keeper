@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/verification_query.json",
+  "title": "VERIFICATION_QUERY",
+  "description": "Request from the Referee to a Keeper to verify stored hashes and timestamps for a specific terminal. The Referee MUST send one VERIFICATION_QUERY per party (Actor and Claimant separately), even when they use the same Keeper.",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "VERIFICATION_QUERY"
+    },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Identifier of the incident subject to verification"
+    },
+    "requester_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the Referee sending this query."
+    },
+    "target_terminal_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the party whose anchor records are to be verified. The Keeper MUST restrict the search to records submitted by this terminal."
+    },
+    "target_hashes": {
+      "type": "array",
+      "description": "Hash values of the evidence data to be verified.",
+      "items": { "$ref": "common.json#/$defs/sha256_hash" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "original_timestamp_range": {
+      "type": "object",
+      "description": "Time range within which the evidence is expected to have been stored. Applied to all hashes in target_hashes.",
+      "properties": {
+        "start": { "$ref": "common.json#/$defs/iso8601_timestamp" },
+        "end": { "$ref": "common.json#/$defs/iso8601_timestamp" }
+      },
+      "required": ["start", "end"],
+      "additionalProperties": false
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this query was sent."
+    }
+  },
+  "required": [
+    "type",
+    "incident_id",
+    "requester_id",
+    "target_terminal_id",
+    "target_hashes",
+    "original_timestamp_range",
+    "timestamp"
+  ],
+  "additionalProperties": false
+}

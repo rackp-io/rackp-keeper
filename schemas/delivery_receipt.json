@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/delivery_receipt.json",
+  "title": "DELIVERY_RECEIPT",
+  "description": "Acceptance response of the baseline HTTP transport binding (docs/TRANSPORT-BINDING.md) — not an RFC-0001 Section 6 protocol message. Returned with HTTP 200 when a receiver accepts a protocol message. Constitutes delivery confirmation per RFC-0001 Section 6 (Message Delivery) and is the proof-of-service artifact relied on by STD-022 (deadlines counted from delivery acceptance), STD-030 (delivery attempt records), and STD-031 (delivery acknowledgment obligation). A receipt acknowledges receipt and custody only — not agreement with the message's claims or any protocol outcome; where a protocol outcome exists it is expressed by the embedded response message, never by the receipt itself. For request messages that define a protocol-level response (VERIFICATION_QUERY, REFEREE_STATS_QUERY, FEE_STATUS_QUERY, REFEREE_DISCOVERY_REQUEST, FEE_CLAIM, FEE_REFUND_CLAIM), the receipt MUST carry that response in the response field (TRANSPORT-BINDING.md Section 2).",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "DELIVERY_RECEIPT" },
+    "received_at": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Receiver's clock. Authoritative for every deadline that RFC-0001 counts from delivery acceptance (STD-022); senders must not substitute their own clock."
+    },
+    "message_hash": {
+      "$ref": "common.json#/$defs/sha256_hash",
+      "description": "SHA-256 of the JCS (RFC 8785) canonicalization of the received message, binding this receipt to exactly one message."
+    },
+    "receiver_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the receiver issuing this receipt."
+    },
+    "response": {
+      "type": "object",
+      "required": ["type"],
+      "description": "(Present when the received message is a request that defines a protocol-level response: VERIFICATION_QUERY, REFEREE_STATS_QUERY, FEE_STATUS_QUERY, REFEREE_DISCOVERY_REQUEST, FEE_CLAIM, FEE_REFUND_CLAIM.) The response message defined by RFC-0001 Section 6 (e.g., VERIFICATION_RESULT), embedded unchanged and validating against its own schema. The receipt's signature covers the canonical body including this field, extending the receipt's evidentiary weight to the embedded response. On idempotent redelivery the original embedded response is re-returned as issued, not recomputed."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "REQUIRED. Without a signature, acceptance is indistinguishable from the sender's own assertion and the receipt carries no evidentiary weight."
+    }
+  },
+  "required": ["type", "received_at", "message_hash", "receiver_id", "signature"]
+}

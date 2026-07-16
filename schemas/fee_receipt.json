@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/fee_receipt.json",
+  "title": "FEE_RECEIPT",
+  "description": "Message sent by the Referee to the Keeper to acknowledge that actual payment has been received via an external payment mechanism. The Referee MUST send this after receiving payment, whether triggered by FEE_RELEASE (push) or FEE_CLAIM_RESULT(ACCEPTED) (pull). Upon receipt, the Keeper transitions the escrow record for the incident to SETTLED state. The Referee MUST also send a copy to its own Keeper (unless it is itself the releasing Keeper): reputation is queried at the Referee's own Keeper (REFEREE_STATS_QUERY), and the copy is what closes the unreceived_count obligation opened by the ASSESSMENT_ISSUED / POH_CERT_ISSUED anchor. A Keeper holding no escrow for the incident records the copy with no escrow transition. Exempt for Referees operating under fee.model: FREE, as no external payment occurs. Failure to send for a FIXED-model incident is recorded as a protocol deficiency and reflected in unreceived_count in REFEREE_STATS_RESULT (STD-032; disclosure only, never a fault input). The Keeper records external_tx_ref as provided but does not verify its content. See RFC-0001 Section 6.24 and RFC-0002 Section 1.2.2 for details.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "FEE_RECEIPT" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier."
+    },
+    "referee_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the Referee acknowledging receipt."
+    },
+    "cert_id": {
+      "type": "string",
+      "description": "cert_id of the CONTRIBUTION_RESULT for which payment was received."
+    },
+    "received_amount": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000000,
+      "multipleOf": 0.001,
+      "description": "Amount actually received via the external payment mechanism. Bounded to at most 3 decimal places (every ISO 4217 currency, including BHD/KWD/OMR) so JCS number serialization round-trips exactly across implementations."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Three-letter uppercase currency code (e.g., 'USD', 'JPY', 'EUR'). ISO 4217 is recommended but not enforced."
+    },
+    "triggered_by": {
+      "type": "string",
+      "enum": ["FEE_RELEASE", "FEE_CLAIM_RESULT"],
+      "description": "The Keeper message that authorized payment. FEE_RELEASE: push-based flow. FEE_CLAIM_RESULT: pull-based flow."
+    },
+    "external_tx_ref": {
+      "type": "string",
+      "description": "(Optional) External payment transaction reference ID. Recorded by the Keeper for audit purposes; content is not verified by the Keeper."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this receipt was sent."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "Ed25519 digital signature over the canonical JSON of all fields excluding this field."
+    }
+  },
+  "required": ["type", "incident_id", "referee_id", "cert_id", "received_amount", "currency", "triggered_by", "timestamp", "signature"]
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/verification_result.json",
+  "title": "VERIFICATION_RESULT",
+  "description": "Response from the Keeper to a VERIFICATION_QUERY. Returns a result entry for each hash in target_hashes, in the same order.",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "VERIFICATION_RESULT"
+    },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Identifier of the incident subject to verification. Echoed from the corresponding VERIFICATION_QUERY."
+    },
+    "results": {
+      "type": "array",
+      "description": "Verification result for each hash in target_hashes, in the same order as the request.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "target_hash": {
+            "$ref": "common.json#/$defs/sha256_hash",
+            "description": "The hash value that was queried."
+          },
+          "matched": {
+            "type": "boolean",
+            "description": "Whether a matching anchor record was found within the requested time range."
+          },
+          "matched_record": {
+            "type": ["object", "null"],
+            "description": "The matching anchor record if found, null if matched is false.",
+            "properties": {
+              "claim_id": {
+                "$ref": "common.json#/$defs/uuid",
+                "description": "claim_id of the matching CLAIM_ANCHOR record."
+              },
+              "terminal_id": {
+                "$ref": "common.json#/$defs/terminal_id",
+                "description": "terminal_id of the party that submitted the anchor."
+              },
+              "timestamp": {
+                "$ref": "common.json#/$defs/iso8601_timestamp",
+                "description": "Timestamp at which the anchor was recorded by the Keeper."
+              },
+              "data_hash": {
+                "$ref": "common.json#/$defs/sha256_hash",
+                "description": "The hash value stored in the anchor record."
+              },
+              "public_key": {
+                "anyOf": [
+                  { "$ref": "common.json#/$defs/public_key" },
+                  { "type": "null" }
+                ],
+                "description": "Ed25519 public key associated with the terminal, if registered. Null if not recorded."
+              }
+            },
+            "required": ["claim_id", "terminal_id", "timestamp", "data_hash", "public_key"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["target_hash", "matched", "matched_record"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "type",
+    "incident_id",
+    "results"
+  ],
+  "additionalProperties": false
+}

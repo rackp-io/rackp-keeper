@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/fee_claim_result.json",
+  "title": "FEE_CLAIM_RESULT",
+  "description": "Response from the Keeper to a FEE_CLAIM. Covers both acceptance and rejection in a single message type via the status field. On ACCEPTED, this message carries the same semantics as FEE_RELEASE: the Referee may proceed to collect payment. On REJECTED, the rejection_reason field indicates why the claim was denied. See RFC-0001 Section 6.23 for details.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "FEE_CLAIM_RESULT" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier. Echoed from the corresponding FEE_CLAIM."
+    },
+    "referee_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the Referee that sent the FEE_CLAIM."
+    },
+    "cert_id": {
+      "type": "string",
+      "description": "cert_id from the corresponding FEE_CLAIM."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACCEPTED", "REJECTED"],
+      "description": "ACCEPTED: the claim is approved and the escrowed amount is released. REJECTED: the claim is denied; see rejection_reason."
+    },
+    "released_amount": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000000,
+      "multipleOf": 0.001,
+      "description": "(Present when status is ACCEPTED) Amount released from escrow to the Referee. Bounded to at most 3 decimal places (every ISO 4217 currency, including BHD/KWD/OMR) so JCS number serialization round-trips exactly across implementations."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Three-letter uppercase currency code (e.g., 'USD', 'JPY', 'EUR'). ISO 4217 is recommended but not enforced."
+    },
+    "rejection_reason": {
+      "type": "string",
+      "enum": [
+        "TIMER_NOT_ELAPSED",
+        "APPEAL_PENDING",
+        "CERT_NOT_FOUND",
+        "ALREADY_RELEASED",
+        "ESCROW_EXPIRED"
+      ],
+      "description": "(Present when status is REJECTED) Reason for rejection. TIMER_NOT_ELAPSED: the FEE_RELEASE timer has not yet expired. APPEAL_PENDING: a valid ASSESSMENT_APPEAL is currently pending. CERT_NOT_FOUND: cert_id was not recognized — not found in an ASSESSMENT_ISSUED anchor (Referee's own Keeper) or an INCIDENT_NOTICE(ASSESSMENT_COMPLETE) record (party Keeper in split-Keeper topology). ALREADY_RELEASED: payment for this incident has already been released. ESCROW_EXPIRED: the escrow was refunded to the depositing parties after the assessment deadline expired (STD-028); a late result confers no payment right through the escrow."
+    },
+    "timer_expires_at": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "(Present when rejection_reason is TIMER_NOT_ELAPSED) Scheduled FEE_RELEASE timer expiry. Provided so the Referee can determine when to retry."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this result was issued by the Keeper."
+    }
+  },
+  "required": ["type", "incident_id", "referee_id", "cert_id", "status", "currency", "timestamp"],
+  "if": { "properties": { "status": { "const": "ACCEPTED" } } },
+  "then": { "required": ["released_amount"] },
+  "else": { "required": ["rejection_reason"] }
+}

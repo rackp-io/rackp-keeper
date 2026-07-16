@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/fee_release.json",
+  "title": "FEE_RELEASE",
+  "description": "Message sent by Keeper to Referee to release the escrowed balance this Keeper holds for the incident. Automatically sent after ASSESSMENT_ISSUED anchor is received and the appeal deadline (additional_appeal_limit_datetime) has passed with no valid ASSESSMENT_APPEAL. Each Keeper releases only what it holds: in a split-Keeper topology (Kc and Ka), the amounts released across Keepers sum to the total deposited for the incident — the Referee is never paid more than the escrowed total (STD-029). No refund is issued to Actor or Claimant; fault-ratio-based redistribution is delegated to the judicial layer. See RFC-0002 Section 1 for payment flow details.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "FEE_RELEASE" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier."
+    },
+    "referee_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the recipient (Referee)."
+    },
+    "released_amount": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000000,
+      "multipleOf": 0.001,
+      "description": "The escrowed balance held by this Keeper for the incident, released to the Referee before any deductions. Not the cross-Keeper total: each Keeper releases only what it holds. The protocol license fee is collected separately by RACKP and is not deducted from this amount. Bounded to at most 3 decimal places (every ISO 4217 currency, including BHD/KWD/OMR) so JCS number serialization round-trips exactly across implementations."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Three-letter uppercase currency code (e.g., 'USD', 'JPY', 'EUR'). ISO 4217 is recommended but not enforced."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this release was issued."
+    }
+  },
+  "required": ["type", "incident_id", "referee_id", "released_amount", "currency", "timestamp"]
+}

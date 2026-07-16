@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/contribution_result.json",
+  "title": "CONTRIBUTION_RESULT",
+  "description": "Final contribution ratio determination result and proof information for an incident",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "CONTRIBUTION_RESULT" },
+    "network": {
+      "type": "string",
+      "enum": ["MAINNET", "TESTNET"],
+      "description": "The network to which this assessment belongs. TESTNET results MUST NOT be registered in or referenced from the production evidence chain. The Keeper validates the network before deciding whether to record the result in the ledger. Additional network types (e.g., STAGING, PRIVATE) are not defined by this version of the protocol; extensions are left to community discussion."
+    },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid"
+    },
+    "referee_id": { "$ref": "common.json#/$defs/terminal_id" },
+    "referee_reputation_snapshot": {
+      "type": "object",
+      "description": "Snapshot of the Referee's track record at the time of assessment issuance. Records how many assessments the Referee had completed at that point, enabling post-hoc evaluation of the Referee's experience level.",
+      "properties": {
+        "total_assessments": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of assessments this Referee had conducted at the time of issuance."
+        },
+        "snapshot_timestamp": { "$ref": "common.json#/$defs/iso8601_timestamp" }
+      },
+      "required": ["total_assessments", "snapshot_timestamp"]
+    },
+    "assessment": {
+      "type": "object",
+      "properties": {
+        "factual_findings": { "type": "string", "description": "Summary of the established facts" },
+        "fault": {
+          "type": "object",
+          "description": "Fault and responsibility ratio for the incident itself. actor_fault + claimant_fault + external_factor must equal 1.0.",
+          "properties": {
+            "actor_fault": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Fault ratio attributed to the Actor."
+            },
+            "claimant_fault": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Fault ratio attributed to the Claimant."
+            },
+            "external_factor": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Contribution ratio attributed to external factors beyond either party's control. actor_fault + claimant_fault + external_factor must equal 1.0."
+            },
+            "confidence": {
+              "type": "string",
+              "enum": ["HIGH", "MEDIUM", "LOW"],
+              "description": "Confidence level of the fault assessment, derived from evidence quality and verification results."
+            }
+          },
+          "required": ["actor_fault", "claimant_fault", "external_factor", "confidence"]
+        },
+        "technical_violation": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of technical norms or protocols that were violated"
+        },
+        "provenance_score": {
+          "type": "object",
+          "description": "Breakdown of human vs. AI contribution in the actions of each party. For both actor_provenance and claimant_provenance, human_ratio + ai_ratio must equal 1.0.",
+          "properties": {
+            "actor_provenance": {
+              "type": "object",
+              "description": "Human/AI contribution ratio for the Actor's actions (human_ratio + ai_ratio = 1.0)",
+              "properties": {
+                "human_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+                "ai_ratio": { "type": "number", "minimum": 0, "maximum": 1 }
+              },
+              "required": ["human_ratio", "ai_ratio"]
+            },
+            "claimant_provenance": {
+              "type": "object",
+              "description": "Human/AI contribution ratio for the Claimant's actions (human_ratio + ai_ratio = 1.0)",
+              "properties": {
+                "human_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+                "ai_ratio": { "type": "number", "minimum": 0, "maximum": 1 }
+              },
+              "required": ["human_ratio", "ai_ratio"]
+            },
+            "confidence_level": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] }
+          },
+          "required": ["actor_provenance", "claimant_provenance", "confidence_level"]
+        },
+        "detailed_report": {
+          "type": "object",
+          "properties": {
+            "report_url": { "type": "string", "format": "uri" },
+            "report_hash": { "$ref": "common.json#/$defs/sha256_hash" }
+          },
+          "required": ["report_url", "report_hash"]
+        },
+        "certification": {
+          "type": "object",
+          "properties": {
+            "cert_id": { "type": "string" },
+            "issue_date": { "$ref": "common.json#/$defs/iso8601_timestamp" },
+            "cert_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the issued certificate. The HTTP response at this URL MUST include a Content-Type header. The response format (JSON, PEM, etc.) is left to the Referee implementation. Recipients MUST reference the Content-Type header to determine the format."
+            },
+            "proof_hash": { "type": "string" }
+          },
+          "required": ["cert_id", "issue_date", "cert_url", "proof_hash"]
+        },
+        "evidence_sufficiency": {
+          "type": "object",
+          "description": "Assessment of the quality and completeness of evidence submitted by each party. The Referee MUST include this field regardless of evidence density. RACKP does not determine the reason for low coverage (bad faith vs. implementation immaturity); it records and discloses only.",
+          "properties": {
+            "assessment_status": {
+              "type": "string",
+              "enum": ["DEFINITIVE", "PROVISIONAL"],
+              "description": "DEFINITIVE: sufficient evidence was available to reach a well-supported assessment. PROVISIONAL: evidence was sparse but an assessment was issued. PROVISIONAL does not invalidate the assessment; it annotates the evidence quality."
+            },
+            "actor_coverage": {
+              "type": "string",
+              "enum": ["HIGH", "MEDIUM", "LOW", "NONE", "UNKNOWN"],
+              "description": "Density of anchoring records available for the Actor. NONE: no records found. UNKNOWN: Keeper was unreachable or records were inconclusive."
+            },
+            "claimant_coverage": {
+              "type": "string",
+              "enum": ["HIGH", "MEDIUM", "LOW", "NONE", "UNKNOWN"],
+              "description": "Density of anchoring records available for the Claimant."
+            },
+            "gaps": {
+              "type": "array",
+              "description": "List of specific evidence gaps identified during assessment. Optional.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "party_id": { "$ref": "common.json#/$defs/terminal_id" },
+                  "description": { "type": "string", "description": "Human-readable description of the gap." }
+                },
+                "required": ["party_id", "description"]
+              }
+            }
+          },
+          "required": ["assessment_status", "actor_coverage", "claimant_coverage"]
+        },
+        "fee_compliance": {
+          "type": "object",
+          "description": "Per-party FEE_DEPOSIT status at the time of issuance, as confirmed via FEE_STATUS_RESULT (STD-010). Disclosure only: fee compliance MUST NOT be factored into the fault values and MUST NOT be listed in technical_violation. RACKP records and discloses this fact only; any consequence of non-payment is left to application layers (e.g., insurers, courts, contractual arrangements).",
+          "properties": {
+            "actor_fee_status": {
+              "type": "string",
+              "enum": ["DEPOSITED", "NOT_DEPOSITED", "NOT_REQUIRED", "UNKNOWN"],
+              "description": "DEPOSITED: FEE_DEPOSIT of at least the expected amount for this party's role (per the Referee's declared fee.deposit allocation, or the STD-029 default) confirmed by the party's Keeper by the deadline. NOT_DEPOSITED: no deposit, or a deposit below the expected amount, confirmed by the deadline. NOT_REQUIRED: the party bears no deposit obligation for this assessment (e.g., the non-initiating party of a re-assessment under STD-020). UNKNOWN: the party's Keeper was unreachable or the status was inconclusive."
+            },
+            "claimant_fee_status": {
+              "type": "string",
+              "enum": ["DEPOSITED", "NOT_DEPOSITED", "NOT_REQUIRED", "UNKNOWN"],
+              "description": "Same semantics as actor_fee_status."
+            },
+            "fee_snapshot": {
+              "type": "object",
+              "description": "Snapshot of the Referee's declared pricing at issuance time (STD-026). REFEREE_PROFILE fee values may change over time; this snapshot makes the result self-contained, so that a downstream consumer can judge the reasonableness of a declined fee (e.g., distinguish refusal of a standard fee from refusal of an extortionate one). For fee.model FREE, amounts are 0 and both parties are NOT_REQUIRED.",
+              "properties": {
+                "total_amount": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000,
+                  "multipleOf": 0.001,
+                  "description": "The Referee's fee.amount at issuance time. Bounded to at most 3 decimal places (every ISO 4217 currency, including BHD/KWD/OMR) so JCS number serialization round-trips exactly across implementations."
+                },
+                "claimant_expected": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000,
+                  "multipleOf": 0.001,
+                  "description": "Expected deposit for the Claimant role in this assessment (per the declared fee.deposit allocation, the STD-029 default, or the full amount for a sole requester)."
+                },
+                "actor_expected": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000,
+                  "multipleOf": 0.001,
+                  "description": "Expected deposit for the Actor role in this assessment. 0 when the role is NOT_REQUIRED."
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$",
+                  "description": "Three-letter uppercase currency code (e.g., 'USD', 'JPY', 'EUR'). ISO 4217 is recommended but not enforced."
+                }
+              },
+              "required": ["total_amount", "claimant_expected", "actor_expected", "currency"]
+            }
+          },
+          "required": ["actor_fee_status", "claimant_fee_status", "fee_snapshot"]
+        },
+        "actor_participation": {
+          "type": "object",
+          "description": "Actor notification and participation status at issuance time (STD-030). Disclosure only: participation status MUST NOT be factored into the fault values and MUST NOT be listed in technical_violation. RACKP records whether and how the Actor was reached; it does not determine why the Actor did not respond (refusal vs. genuine non-receipt). Downstream consumers weigh an ex parte result accordingly.",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["ACKNOWLEDGED", "NOTIFIED_NO_RESPONSE", "UNREACHABLE", "NOT_APPLICABLE"],
+              "description": "ACKNOWLEDGED: ACTOR_ACKNOWLEDGMENT received (subsequent evidence participation is reflected in evidence_sufficiency). NOTIFIED_NO_RESPONSE: ACTOR_NOTIFICATION delivery was confirmed by a Keeper acceptance response but no ACTOR_ACKNOWLEDGMENT was received by response_deadline. UNREACHABLE: no Ka endpoint could be resolved, or no delivery attempt was accepted. NOT_APPLICABLE: no Actor in this assessment (e.g., PoHI flow)."
+            },
+            "notification_record": {
+              "type": "object",
+              "description": "Delivery attempt record for ACTOR_NOTIFICATION — the protocol's proof-of-service equivalent. Required unless status is NOT_APPLICABLE.",
+              "properties": {
+                "endpoint_source": {
+                  "type": "string",
+                  "enum": ["CLAIMANT_PROVIDED", "NORM_REGISTRY", "NONE"],
+                  "description": "Where the attempted Ka endpoint came from. A CLAIMANT_PROVIDED endpoint is unverified until ACTOR_ACKNOWLEDGMENT: delivery acceptance confirms delivery to the endpoint, not receipt by the party (Message Delivery, RFC-0001 Section 6). NONE: no endpoint was available from any source."
+                },
+                "delivery_confirmed": {
+                  "type": "boolean",
+                  "description": "Whether any delivery attempt received a Keeper acceptance response."
+                },
+                "attempt_count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of delivery attempts made."
+                },
+                "first_attempt_at": { "$ref": "common.json#/$defs/iso8601_timestamp" },
+                "last_attempt_at": { "$ref": "common.json#/$defs/iso8601_timestamp" }
+              },
+              "required": ["endpoint_source", "delivery_confirmed", "attempt_count"]
+            }
+          },
+          "required": ["status"],
+          "if": {
+            "properties": { "status": { "enum": ["ACKNOWLEDGED", "NOTIFIED_NO_RESPONSE", "UNREACHABLE"] } }
+          },
+          "then": { "required": ["status", "notification_record"] }
+        },
+        "norms_used": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of Local Norm profile IDs (reverse-domain notation, e.g., 'jp.go.mlit.automotive.v1') used as the basis for this assessment. The Referee MUST include this field."
+        },
+        "norm_jurisdiction_mismatch": {
+          "type": "string",
+          "description": "(Optional) Description of any discrepancy between the declared Norm Profile's jurisdiction/domain and the actual characteristics of the incident. SHOULD include a description of the Norm Profile the Referee would have selected based on the incident's actual context. This record does not invalidate the assessment; it is material for post-hoc verification of Norm selection appropriateness. See Section 9.4."
+        }
+      },
+      "required": ["factual_findings", "fault", "provenance_score", "detailed_report", "evidence_sufficiency", "fee_compliance", "actor_participation", "norms_used", "certification"]
+    },
+    "evidence_provenance": {
+      "type": "string",
+      "description": "Human-readable summary of the evidence sources and anchoring records referenced by the Referee during assessment. Distinct from evidence_sufficiency, which evaluates coverage quality — this field enumerates the actual sources used."
+    },
+    "additional_appeal_limit_datetime": { "$ref": "common.json#/$defs/iso8601_timestamp" },
+    "related_incident_ids": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" },
+      "description": "(Optional) List of IDs of related incidents originating from the same real-world event. This field is reference information serving as a pointer only; RACKP does not guarantee the accuracy of the relationship. Aggregation and legal determination are the responsibility of higher-level judicial or application layers."
+    },
+    "prior_assessment_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of CONTRIBUTION_RESULTs previously issued for this incident_id by any Referee, as recorded in the Keeper (ASSESSMENT_ISSUED anchors). 0 for a first assessment. The Referee MUST retrieve this value from the Keeper before issuing the result (STD-020)."
+    },
+    "prior_verdict_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "(Optional) List of cert_id values from prior assessments of this incident_id. Empty array for first assessments."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this result was issued."
+    }
+  },
+  "required": ["type", "network", "incident_id", "referee_id", "referee_reputation_snapshot", "assessment", "evidence_provenance", "additional_appeal_limit_datetime", "prior_assessment_count", "timestamp"],
+  "if": {
+    "properties": { "prior_assessment_count": { "minimum": 1 } },
+    "required": ["prior_assessment_count"]
+  },
+  "then": {
+    "properties": { "prior_verdict_refs": { "minItems": 1 } },
+    "required": ["prior_verdict_refs"]
+  }
+}

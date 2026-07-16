@@ -1,0 +1,24 @@
+{
+  "name": "rackp-keeper",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:remote": "wrangler d1 execute rackp-keeper --remote --file ./schema.sql",
+    "db:migrate:local": "wrangler d1 execute rackp-keeper --local --file ./schema.sql",
+    "sync:schemas": "node scripts/sync-schemas.mjs",
+    "genkey": "node scripts/genkey.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "node test-unit.mjs",
+    "test:integration": "node test-integration.mjs"
+  },
+  "dependencies": {
+    "@cfworker/json-schema": "^4.1.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241022.0",
+    "typescript": "^5.5.2",
+    "wrangler": "^3.78.0"
+  }
+}

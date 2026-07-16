@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/referee_stats_query.json",
+  "title": "REFEREE_STATS_QUERY",
+  "description": "Query sent to the Referee's Keeper to retrieve the statistical record of that Referee. The Keeper endpoint is obtained from keeper_endpoint in REFEREE_PROFILE. May be sent by any party. Used for reputation evaluation before selecting a Referee.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "REFEREE_STATS_QUERY" },
+    "terminal_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the Referee to be queried."
+    },
+    "requester_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the party sending this query."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this query was sent."
+    }
+  },
+  "required": ["type", "terminal_id", "requester_id", "timestamp"]
+}

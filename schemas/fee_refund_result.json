@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/fee_refund_result.json",
+  "title": "FEE_REFUND_RESULT",
+  "description": "Response from the Keeper to a FEE_REFUND_CLAIM. Covers both acceptance and rejection in a single message type via the status field. On ACCEPTED, the full deposited amount is returned to the depositing party with no cancellation fee deduction, and the escrow record transitions to EXPIRED: a CONTRIBUTION_RESULT issued after this point confers no payment right through the escrow (the Referee's recourse, if any, lies outside the protocol). The Keeper records the refund event in its ledger, making Referee deadline failures externally observable. See RFC-0001 Section 6.26 for details.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "FEE_REFUND_RESULT" },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Incident identifier. Echoed from the corresponding FEE_REFUND_CLAIM."
+    },
+    "depositor_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the party that sent the FEE_REFUND_CLAIM."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACCEPTED", "REJECTED"],
+      "description": "ACCEPTED: the claim is approved and the deposited amount is returned in full. REJECTED: the claim is denied; see rejection_reason."
+    },
+    "refunded_amount": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000000,
+      "multipleOf": 0.001,
+      "description": "(Present when status is ACCEPTED) Amount returned to the depositing party. Equals the full deposited amount; no cancellation fee is deducted. Bounded to at most 3 decimal places (every ISO 4217 currency, including BHD/KWD/OMR) so JCS number serialization round-trips exactly across implementations."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Three-letter uppercase currency code (e.g., 'USD', 'JPY', 'EUR'). ISO 4217 is recommended but not enforced."
+    },
+    "rejection_reason": {
+      "type": "string",
+      "enum": [
+        "DEADLINE_NOT_ELAPSED",
+        "ASSESSMENT_COMPLETED",
+        "ALREADY_RELEASED",
+        "ALREADY_REFUNDED",
+        "DEPOSIT_NOT_FOUND"
+      ],
+      "description": "(Present when status is REJECTED) Reason for rejection. DEADLINE_NOT_ELAPSED: the assessment-deadline timer has not yet expired (including after a reset by APPEAL_ACCEPTED). ASSESSMENT_COMPLETED: an INCIDENT_NOTICE(ASSESSMENT_COMPLETE) has been received for the current round; the escrow is in the release flow. ALREADY_RELEASED: the escrowed funds have already been released to the Referee or settled. ALREADY_REFUNDED: the deposit has already been refunded (EXPIRED) or returned via withdrawal settlement. DEPOSIT_NOT_FOUND: this Keeper holds no deposit from the claiming party for the incident."
+    },
+    "deadline_expires_at": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "(Present when rejection_reason is DEADLINE_NOT_ELAPSED) Scheduled expiry of the assessment-deadline timer. Provided so the party can determine when to retry."
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this result was issued by the Keeper."
+    }
+  },
+  "required": ["type", "incident_id", "depositor_id", "status", "currency", "timestamp"],
+  "if": { "properties": { "status": { "const": "ACCEPTED" } } },
+  "then": { "required": ["refunded_amount"] },
+  "else": { "required": ["rejection_reason"] }
+}

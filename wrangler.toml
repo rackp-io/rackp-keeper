@@ -1,0 +1,19 @@
+name = "rackp-keeper"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# Push-based FEE_RELEASE dispatch + redelivery (RFC-0001 §6.15).
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+# This Keeper's terminal identity (receiver_id on every acknowledgment).
+KEEPER_TERMINAL_ID = "b3e1c9d2-4f6a-4a3b-8c5d-9e7f01234567"
+# KEEPER_SIGNING_KEY is a secret (Ed25519 private JWK; scripts/genkey.mjs):
+#   wrangler secret put KEEPER_SIGNING_KEY
+# For local dev, put both in .dev.vars.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rackp-keeper"
+database_id = "0d27504e-b8f6-4872-b9e0-3d810cc07753"

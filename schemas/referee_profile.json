@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/referee_profile.json",
+  "title": "REFEREE_PROFILE",
+  "description": "Public profile of a Referee. Used as a response element for REFEREE_DISCOVERY_REQUEST, and also functions as a profile document published by the Referee itself at its own endpoint.",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "const": "REFEREE_PROFILE" },
+    "network": {
+      "type": "string",
+      "enum": ["MAINNET", "TESTNET"],
+      "description": "The network on which this Referee operates. CONTRIBUTION_RESULTs issued by a TESTNET Referee MUST NOT be used as production evidence. Claimants use this as a filtering condition. Additional network types (e.g., STAGING, PRIVATE) are not defined by this version of the protocol; extensions are left to community discussion."
+    },
+    "referee_id": { "$ref": "common.json#/$defs/terminal_id" },
+    "public_key": {
+      "$ref": "common.json#/$defs/public_key",
+      "description": "The Referee's Ed25519 public key, used to verify the signatures on its signed messages (FEE_CLAIM, FEE_RECEIPT, and any other message it signs). A party's Keeper (Kc, Ka) never receives the Referee's CLAIM_ANCHOR sequence 1 — the Referee anchors only to its own Keeper (Kr) — so in a split-Keeper topology this profile is the channel by which a party's Keeper obtains the key needed to verify the Referee's payment messages. A Keeper registers referee_id -> public_key from the first profile it receives (trust on first use), consistent with how it registers a terminal's key from its first CLAIM_ANCHOR; this completes the SESSION_START-equivalent role the profile already serves. The value MUST match the key the Referee registers via its sequence-1 CLAIM_ANCHOR at its own Keeper."
+    },
+    "endpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Endpoint URL to which assessment requests are sent"
+    },
+    "keeper_endpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Endpoint URL of the Keeper this Referee uses. Used by Claimants to send REFEREE_STATS_QUERY and verify the Referee's anchoring records."
+    },
+    "conduct_norms": {
+      "type": "array",
+      "description": "List of Norm Profiles that govern how this Referee conducts assessments. Claimants use this to verify whether the Referee operates under a suitable conduct norm for the intended jurisdiction and domain. Publishing this profile constitutes the Referee's norm declaration, equivalent to SESSION_START. When this Referee is named as a party in an assessment, this published profile serves as its norm declaration.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "jurisdiction_code": { "type": "string" },
+          "domain": { "type": "string" },
+          "norm_profile_id": {
+            "type": "string",
+            "description": "ID of the Norm Profile governing this Referee's assessment conduct (corresponds to profile_id in norm_profile.json)"
+          }
+        },
+        "required": ["jurisdiction_code", "domain", "norm_profile_id"]
+      }
+    },
+    "availability_status": {
+      "type": "string",
+      "enum": ["AVAILABLE", "BUSY", "OFFLINE"],
+      "description": "Current acceptance status"
+    },
+    "fee": {
+      "type": "object",
+      "description": "Cost information for assessment requests. A cost mechanism to discourage frivolous requests.",
+      "properties": {
+        "model": {
+          "type": "string",
+          "enum": ["FIXED", "FREE"],
+          "description": "FIXED: fixed cost / FREE: no cost"
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000000,
+          "multipleOf": 0.001,
+          "description": "Cost amount. Must be 0 when model is FREE. Bounded to at most 3 decimal places (every ISO 4217 currency, including BHD/KWD/OMR) so JCS number serialization round-trips exactly across implementations."
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency code (ISO 4217, e.g., 'USD', 'JPY', 'EUR')."
+        },
+        "cancellation_fee": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000000,
+          "multipleOf": 0.001,
+          "description": "Fee charged when the parties jointly withdraw an active assessment via ASSESSMENT_WITHDRAWAL. Each notified Keeper independently deducts this amount from the escrow balance it holds before returning the remainder to its depositor; in a split-Keeper topology the same amount is charged at each depositing Keeper (Kc and Ka), so the Referee collects it once per Keeper. Defaults to 0 if omitted. Bounded to at most 3 decimal places (every ISO 4217 currency, including BHD/KWD/OMR) so JCS number serialization round-trips exactly across implementations."
+        },
+        "deposit": {
+          "type": "object",
+          "description": "Expected deposit amount per role (STD-029). The allocation between the parties is the Referee's pricing policy — Claimant-leaning, Actor-leaning, or any split — declared here so that parties know what to deposit. claimant plus actor MUST equal fee.amount. If omitted, the requesting party (the Claimant in an initial assessment, or the initiating party of a re-assessment under STD-020) bears the full fee.amount and the counterparty is NOT_REQUIRED; a Referee that wishes to share the cost between parties declares an explicit allocation here. In a no-Actor assessment such as PoHI, the Claimant is the sole requester and bears the full fee.amount.",
+          "properties": {
+            "claimant": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000000,
+              "multipleOf": 0.001,
+              "description": "Expected FEE_DEPOSIT amount for the Claimant in a two-party assessment."
+            },
+            "actor": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000000,
+              "multipleOf": 0.001,
+              "description": "Expected FEE_DEPOSIT amount for the Actor in a two-party assessment."
+            }
+          },
+          "required": ["claimant", "actor"]
+        }
+      },
+      "required": ["model", "amount", "currency"]
+    },
+    "assessment_deadline_hours": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Maximum number of hours this Referee commits to take between escrow establishment and CONTRIBUTION_RESULT issuance, per assessment round (STD-027). Standard Norm bounds: minimum 72, maximum 2160. Defaults to 720 if omitted. If no CONTRIBUTION_RESULT is issued within this deadline, depositing parties may reclaim their escrowed funds in full via FEE_REFUND_CLAIM (STD-028). Claimants use this value as a delivery-time criterion when selecting a Referee."
+    },
+    "operator_contact": {
+      "type": "object",
+      "description": "Contact information for the Referee operator. Optional at the protocol level: the conditions under which this field must be populated are defined by the license terms (see LICENSE), not by this specification. Used for license inquiries, dispute resolution, and general communication.",
+      "properties": {
+        "name": { "type": "string", "description": "Operator name or organization" },
+        "email": { "type": "string", "format": "email" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "profile_timestamp": { "$ref": "common.json#/$defs/iso8601_timestamp" }
+  },
+  "required": [
+    "type",
+    "network",
+    "referee_id",
+    "public_key",
+    "endpoint",
+    "keeper_endpoint",
+    "conduct_norms",
+    "availability_status",
+    "fee",
+    "profile_timestamp"
+  ]
+}

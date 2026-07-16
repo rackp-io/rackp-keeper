@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/anchor_chain_query.json",
+  "title": "ANCHOR_CHAIN_QUERY",
+  "description": "Request from the Referee to a Keeper for the anchor-chain ledger of a specific terminal within a time window. Where VERIFICATION_QUERY checks the existence of hashes the Referee already knows (point verification), ANCHOR_CHAIN_QUERY discloses what was anchored in the window (ledger disclosure): it is the basis for evidence_sufficiency coverage and gap evaluation, for retrieving the governing SESSION_START Norm declaration (RFC-0001 Section 9.3), and for PoHI anchor-density evaluation (RFC-0001 Section 8). The query MUST be signed; the Keeper MUST verify the signature against the registered public key of requester_id and MUST reject the query unless requester_id is the Referee bound to incident_id via INCIDENT_NOTICE (INCIDENT_OPEN), or requester_id equals target_terminal_id (self-query).",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "ANCHOR_CHAIN_QUERY"
+    },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid",
+      "description": "Identifier of the incident this query is issued for. Used by the Keeper for authorization: the requester must be the Referee bound to this incident (or the target terminal itself)."
+    },
+    "requester_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the requester. Either the Referee assessing incident_id, or the target terminal querying its own chain."
+    },
+    "target_terminal_id": {
+      "$ref": "common.json#/$defs/terminal_id",
+      "description": "Terminal ID of the party whose anchor chain is requested. The Keeper MUST restrict the result to records submitted by this terminal."
+    },
+    "range": {
+      "type": "object",
+      "description": "Time window of interest. The Keeper returns anchors whose Keeper-recorded timestamps fall within [start, end], plus the governing SESSION_START (see ANCHOR_CHAIN_RESULT). The Referee MAY widen the window to perform deeper chain verification itself.",
+      "properties": {
+        "start": { "$ref": "common.json#/$defs/iso8601_timestamp" },
+        "end": { "$ref": "common.json#/$defs/iso8601_timestamp" }
+      },
+      "required": ["start", "end"],
+      "additionalProperties": false
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this query was sent."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "Ed25519 signature by the requester over the canonical body excluding this field. Verified by the Keeper against the registered public key of requester_id."
+    }
+  },
+  "required": [
+    "type",
+    "incident_id",
+    "requester_id",
+    "target_terminal_id",
+    "range",
+    "timestamp",
+    "signature"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rackp-io/rackp/schemas/evidence_submission.json",
+  "title": "EVIDENCE_SUBMISSION",
+  "description": "Submission of requested evidence data, AI statements, and tamper-proof verification information. The Referee independently computes the SHA-256 of payload (canonicalized per RFC 8785) and uses that computed value as the target for VERIFICATION_QUERY — not the self-reported stored_hash.",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "EVIDENCE_SUBMISSION"
+    },
+    "incident_id": {
+      "$ref": "common.json#/$defs/uuid"
+    },
+    "submitter_id": { "$ref": "common.json#/$defs/terminal_id" },
+    "payload": {
+      "type": "object",
+      "description": "The actual evidence data body. The Referee computes SHA-256 of this field (canonicalized per RFC 8785) to independently verify integrity against the Keeper. Structure and required fields are defined by the applicable Norm profile and may vary by terminal implementation.",
+      "additionalProperties": true
+    },
+    "statement": {
+      "type": "object",
+      "description": "AI's explanation of its decision-making process. Required when the corresponding EVIDENCE_QUERY_REQUEST had request_human_readable_statement set to true.",
+      "properties": {
+        "summary": { "type": "string" },
+        "raw_log_reference": { "type": "string" },
+        "human_readable_report_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the human-readable report, if one exists"
+        }
+      },
+      "required": ["summary", "raw_log_reference"]
+    },
+    "verification_info": {
+      "type": "object",
+      "description": "Cross-reference information pointing to the corresponding CLAIM_ANCHOR record in the Keeper. stored_hash is a cross-check field: the Referee computes the hash independently from payload and records any discrepancy in CONTRIBUTION_RESULT.assessment.technical_violation.",
+      "properties": {
+        "keeper_endpoint": {
+          "type": "string",
+          "format": "uri",
+          "description": "Keeper endpoint URL"
+        },
+        "claim_id": {
+          "$ref": "common.json#/$defs/uuid",
+          "description": "The claim_id of the corresponding CLAIM_ANCHOR record"
+        },
+        "sequence_number": {
+          "type": "integer",
+          "description": "The sequence_number of the corresponding CLAIM_ANCHOR record"
+        },
+        "stored_hash": {
+          "$ref": "common.json#/$defs/sha256_hash",
+          "description": "The hash the submitter claims was stored in the Keeper. Used as a cross-check only. The Referee independently computes SHA-256 from payload and uses that computed value for VERIFICATION_QUERY. If this value differs from the computed hash, the discrepancy is recorded in CONTRIBUTION_RESULT.assessment.technical_violation regardless of the Keeper verification outcome."
+        }
+      },
+      "required": ["keeper_endpoint", "claim_id", "sequence_number", "stored_hash"]
+    },
+    "is_final": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indicates the submitter's intent that this is their final submission. Not a binding lock — additional submissions are accepted until response_deadline. Referee may use this as a hint to begin processing early and may close intake before the deadline. Submitters who send is_final: true accept the risk that subsequent submissions may be disregarded."
+    },
+    "signature": { "$ref": "common.json#/$defs/signature" },
+    "external_factor_claim": {
+      "type": "object",
+      "description": "Optional claim that external factors contributed to the incident. The claim is adjudicated by the Referee, not counted: it MUST be supported by references to anchored evidence, and a claim without at least one verifiable supporting reference MUST be rejected (RFC-0001 Section 7). The Referee documents adoption or rejection rationale in assessment.detailed_report.",
+      "properties": {
+        "claimed": { "type": "boolean" },
+        "description": { "type": "string" },
+        "supporting_evidence_refs": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/uuid" },
+          "minItems": 1,
+          "description": "claim_id values of CLAIM_ANCHOR records that substantiate the claimed external factor. Required when claimed is true. The Referee verifies these references against the submitter's Keeper before adopting the claim."
+        }
+      },
+      "required": ["claimed"],
+      "if": {
+        "properties": { "claimed": { "const": true } },
+        "required": ["claimed"]
+      },
+      "then": {
+        "required": ["description", "supporting_evidence_refs"]
+      }
+    },
+    "timestamp": {
+      "$ref": "common.json#/$defs/iso8601_timestamp",
+      "description": "Timestamp of when this submission was sent."
+    }
+  },
+  "required": [
+    "type",
+    "incident_id",
+    "submitter_id",
+    "payload",
+    "verification_info",
+    "signature",
+    "timestamp"
+  ]
+}
