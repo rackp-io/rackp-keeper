@@ -47,10 +47,12 @@ CREATE INDEX idx_anchors_incident  ON anchors(incident_id);
 -- Norm declarations from CLAIM_ANCHOR(SESSION_START).norm_profiles.
 -- Redeclaration upserts (declared_at refreshed).
 CREATE TABLE terminal_norms (
-  terminal_id     TEXT NOT NULL,
-  norm_profile_id TEXT NOT NULL,
-  norm_fetch_url  TEXT NOT NULL,
-  declared_at     TEXT NOT NULL,
+  terminal_id        TEXT NOT NULL,
+  norm_profile_id    TEXT NOT NULL,
+  norm_fetch_url     TEXT NOT NULL,
+  norm_document_hash TEXT,          -- optional (RFC-0001 §9.3): a terminal that cannot
+                                    -- retrieve its profile still declares, so nullable
+  declared_at        TEXT NOT NULL,
   PRIMARY KEY (terminal_id, norm_profile_id)
 );
 

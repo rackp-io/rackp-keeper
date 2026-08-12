@@ -187,14 +187,22 @@ export async function handleClaimAnchor(env: Env, msg: ProtocolMessage): Promise
     ),
   );
   if (msg.action_type === 'SESSION_START') {
-    for (const np of msg.norm_profiles as Array<{ norm_profile_id: string; norm_fetch_url: string }>) {
+    // norm_document_hash is optional (RFC-0001 §9.3): a terminal that cannot retrieve
+    // its profile still declares, so store null rather than refusing the anchor.
+    for (const np of msg.norm_profiles as Array<{
+      norm_profile_id: string;
+      norm_fetch_url: string;
+      norm_document_hash?: string;
+    }>) {
       stmts.push(
         db.prepare(
-          `INSERT INTO terminal_norms (terminal_id, norm_profile_id, norm_fetch_url, declared_at)
-           VALUES (?, ?, ?, ?)
+          `INSERT INTO terminal_norms (terminal_id, norm_profile_id, norm_fetch_url, norm_document_hash, declared_at)
+           VALUES (?, ?, ?, ?, ?)
            ON CONFLICT (terminal_id, norm_profile_id)
-           DO UPDATE SET norm_fetch_url = excluded.norm_fetch_url, declared_at = excluded.declared_at`,
-        ).bind(terminalId, np.norm_profile_id, np.norm_fetch_url, msg.timestamp),
+           DO UPDATE SET norm_fetch_url = excluded.norm_fetch_url,
+                         norm_document_hash = excluded.norm_document_hash,
+                         declared_at = excluded.declared_at`,
+        ).bind(terminalId, np.norm_profile_id, np.norm_fetch_url, np.norm_document_hash ?? null, msg.timestamp),
       );
     }
   }
