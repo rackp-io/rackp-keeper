@@ -5,7 +5,7 @@ append-only anchor log, escrow custodian, and protocol mailbox that every
 other terminal (Actor, Claimant, Referee) transacts through.
 
 Implements [RFC-0001](https://github.com/rackp-io/rackp/blob/main/docs/RFC-0001.md) /
-[RFC-0002](https://github.com/rackp-io/rackp/blob/main/docs/RFC-0002.md), spec version **0.1.0-alpha**.
+[RFC-0002](https://github.com/rackp-io/rackp/blob/main/docs/RFC-0002.md), spec version **0.2.0-alpha**.
 
 > **Hosted instance**: the RACKP project runs a demo deployment of this
 > Keeper at `keeper.rackp.io` so early adopters can verify the protocol
