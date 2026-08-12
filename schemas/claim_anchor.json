@@ -45,6 +45,10 @@
             "type": "string",
             "format": "uri",
             "description": "URL from which this Norm profile is retrieved. The Keeper MUST record this URL in association with the terminal_id and norm_profile_id."
+          },
+          "norm_document_hash": {
+            "$ref": "common.json#/$defs/sha256_hash",
+            "description": "(Optional) SHA-256 of the RFC 8785 (JCS) canonical form of the Norm Profile document retrieved from norm_fetch_url. Records which revision governed the session before the work was produced, so that a document replaced between declaration and assessment becomes visible rather than silently changing the result. Optional by design: requiring it would make a Norm publisher's availability a precondition for anchoring at all (Section 9.3)."
           }
         },
         "required": ["norm_profile_id", "norm_fetch_url"]

@@ -11,6 +11,10 @@
       "enum": ["MAINNET", "TESTNET"],
       "description": "The network to which this assessment belongs. TESTNET results MUST NOT be registered in or referenced from the production evidence chain. The Keeper validates the network before deciding whether to record the result in the ledger. Additional network types (e.g., STAGING, PRIVATE) are not defined by this version of the protocol; extensions are left to community discussion."
     },
+    "rackp_version": {
+      "type": "string",
+      "description": "Version of the RACK Protocol specification the issuing implementation follows (e.g. 0.2.0-alpha). The specification is versioned as a whole and each version is a signed tag on the specification repository, so this value resolves to exact normative text. issue_date does not substitute for it: a date records what the specification said, not what the issuing implementation had adopted, and RFC-0001 Section 10 leaves migration to each implementor's discretion."
+    },
     "incident_id": {
       "$ref": "common.json#/$defs/uuid"
     },
@@ -111,7 +115,10 @@
               "format": "uri",
               "description": "URL of the issued certificate. The HTTP response at this URL MUST include a Content-Type header. The response format (JSON, PEM, etc.) is left to the Referee implementation. Recipients MUST reference the Content-Type header to determine the format."
             },
-            "proof_hash": { "type": "string" }
+            "proof_hash": {
+              "$ref": "common.json#/$defs/sha256_hash",
+              "description": "SHA-256 of the canonical result body (all fields except assessment.certification.proof_hash and signature, serialized per RFC 8785), computed before signing. Lets a recipient confirm that a result matches a hash obtained elsewhere without holding the Referee's key."
+            }
           },
           "required": ["cert_id", "issue_date", "cert_url", "proof_hash"]
         },
@@ -263,7 +270,7 @@
     "prior_assessment_count": {
       "type": "integer",
       "minimum": 0,
-      "description": "Number of CONTRIBUTION_RESULTs previously issued for this incident_id by any Referee, as recorded in the Keeper (ASSESSMENT_ISSUED anchors). 0 for a first assessment. The Referee MUST retrieve this value from the Keeper before issuing the result (STD-020)."
+      "description": "Number of CONTRIBUTION_RESULTs previously issued for this incident_id, as recorded in the Keeper (ASSESSMENT_ISSUED anchors) — under the one-Referee-per-incident binding these are earlier appeal-round revisions by the same Referee; a re-assessment by a different Referee is a separate incident (STD-020). 0 for a first assessment. The Referee MUST retrieve this value from the Keeper before issuing the result."
     },
     "prior_verdict_refs": {
       "type": "array",
@@ -273,9 +280,13 @@
     "timestamp": {
       "$ref": "common.json#/$defs/iso8601_timestamp",
       "description": "Timestamp of when this result was issued."
+    },
+    "signature": {
+      "$ref": "common.json#/$defs/signature",
+      "description": "Ed25519 signature by the issuing Referee over the canonical body (all fields except signature, serialized per RFC 8785). Verified against the public_key registered for referee_id. A CONTRIBUTION_RESULT is the assessment itself and the document a party carries to another Referee when contesting it, so it is signed like any other issued artifact: proof_hash shows only internal consistency, and the ASSESSMENT_ISSUED anchor commits to the cert_id and issuance time rather than to the content."
     }
   },
-  "required": ["type", "network", "incident_id", "referee_id", "referee_reputation_snapshot", "assessment", "evidence_provenance", "additional_appeal_limit_datetime", "prior_assessment_count", "timestamp"],
+  "required": ["type", "network", "rackp_version", "incident_id", "referee_id", "referee_reputation_snapshot", "assessment", "evidence_provenance", "additional_appeal_limit_datetime", "prior_assessment_count", "timestamp", "signature"],
   "if": {
     "properties": { "prior_assessment_count": { "minimum": 1 } },
     "required": ["prior_assessment_count"]

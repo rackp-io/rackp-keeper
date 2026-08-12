@@ -30,7 +30,7 @@
     },
     "public_key": {
       "type": "string",
-      "description": "Ed25519 public key. Unpadded Base64url encoded (no '=' padding). Included only in the CLAIM_ANCHOR where sequence_number == 1. The Keeper stores this in association with the terminal_id."
+      "description": "Ed25519 public key. Unpadded Base64url encoded (no '=' padding). In CLAIM_ANCHOR, included only where sequence_number == 1; the Keeper stores this in association with the terminal_id."
     }
   }
 }
