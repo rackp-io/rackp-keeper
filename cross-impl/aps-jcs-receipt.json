@@ -1,0 +1,15 @@
+{
+  "verifier": "rackp-keeper/src/crypto.ts jcs (RFC 8785)",
+  "verifier_repo": "https://github.com/rackp-io/rackp-keeper",
+  "verifier_commit": "dba80d905e00dc650ae6e7d7550fdda713c2edb6",
+  "fixture_repo": "https://github.com/Agent-Authority-Conformance/aps-conformance-suite",
+  "fixture": "fixtures/canonical-bytes/canonical-bytes-jcs-v1.json",
+  "fixture_commit": "31243b80742bda741008bca8f4e66eafacfa1405",
+  "fixture_sha256": "914803e87ce165f59958835519b30274623f2afab9a8ef5059bd2902ff0c9a8a",
+  "vectors_total": 8,
+  "vectors_passed": 8,
+  "compared": ["canonical", "canonical_bytes_hex", "canonical_sha256"],
+  "timestamp": "2026-08-19T09:31:00Z",
+  "result": "PASS",
+  "note": "The same jcs() is present byte-identically in rackp-referee/src/crypto.ts, so this result covers both reference implementations. Separately, the post-fix canonical form in fixtures/canonical-bytes/canonical-bytes-diff-v032.json (sha256 84df9e0a634eba40f5388872bed4f028a240e0c2f2d646755ecbdfb6b8ee0e42, commit 799737a7e674452b590a1a712ee1ebbb538aeb9a) reproduces on all three of its published values. That file is a case study rather than a vector set, so it is not counted in vectors_total."
+}
