@@ -3,20 +3,21 @@
 // vectors before first interoperation). Exercises the same JCS / hashing /
 // signing conventions the worker uses. Run: npm run test:unit
 import { readFileSync } from 'node:fs';
-import { createHash, webcrypto } from 'node:crypto';
+import { webcrypto } from 'node:crypto';
+import { transformSync } from 'esbuild';
 import assert from 'node:assert/strict';
 
 const { subtle } = webcrypto;
 
-// Mirror of src/crypto.ts jcs() (kept in sync by these vectors).
-function jcs(value) {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) return '[' + value.map(jcs).join(',') + ']';
-  const keys = Object.keys(value).sort();
-  return '{' + keys.map((k) => JSON.stringify(k) + ':' + jcs(value[k])).join(',') + '}';
-}
-
-const sha256hex = (s) => createHash('sha256').update(s, 'utf8').digest('hex');
+// The shipped canonicalizer and digest, loaded from src/crypto.ts itself: these
+// vectors are only a guard against drift if they exercise the code the worker
+// deploys rather than a copy of it kept alongside them.
+const { jcs, sha256hex } = await import(
+  'data:text/javascript;base64,' +
+  Buffer.from(
+    transformSync(readFileSync('./src/crypto.ts', 'utf8'), { loader: 'ts', format: 'esm' }).code,
+  ).toString('base64')
+);
 
 function fromBase64url(s) {
   return Buffer.from(s.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
@@ -72,7 +73,7 @@ const anchorVector = JSON.parse(readFileSync('./schemas/test-vectors/claim_ancho
 console.log('CLAIM_ANCHOR pipeline:');
 {
   assert.equal(jcs(anchorVector.anchored_payload), anchorVector.payload_canonical, 'payload canonical');
-  assert.equal(sha256hex(anchorVector.payload_canonical), anchorVector.data_hash, 'data_hash');
+  assert.equal(await sha256hex(anchorVector.payload_canonical), anchorVector.data_hash, 'data_hash');
   const { signature, ...body } = anchorVector.message;
   assert.equal(jcs(body), anchorVector.message_body_canonical, 'message body canonical');
   const signKey = await importSignKeyFromSeed(anchorVector.secret_key_hex);
