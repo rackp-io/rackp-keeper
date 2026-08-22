@@ -37,10 +37,22 @@ function nowIso(): string {
   return new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
 }
 
+// A Keeper is addressed by browser-based terminals as well as by servers: an
+// editor anchoring its own process record runs on the user's device, on an
+// origin that is not this one. Every message here is signed and authorized on
+// its own contents, so the browser's origin is not a boundary the Keeper
+// relies on — withholding these headers only stops the anchor from being sent.
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Max-Age': '86400',
+};
+
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS },
   });
 }
 
@@ -290,6 +302,11 @@ async function runScheduled(env: Env): Promise<void> {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    // An application/json body is not a simple request, so every POST from a
+    // browser is preceded by this.
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: CORS });
+    }
     if (request.method === 'GET') {
       // TRANSPORT-BINDING §1: GET {endpoint} MUST return a capability summary
       // carrying receiver_id and public_key (STD-034) — a Keeper has no
