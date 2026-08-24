@@ -300,40 +300,60 @@ async function runScheduled(env: Env): Promise<void> {
   }
 }
 
+/** Everything this Worker answers, minus the guarantee that it answers at all. */
+async function route(request: Request, env: Env): Promise<Response> {
+  // An application/json body is not a simple request, so every POST from a
+  // browser is preceded by this.
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS });
+  }
+  if (request.method === 'GET') {
+    // TRANSPORT-BINDING §1: GET {endpoint} MUST return a capability summary
+    // carrying receiver_id and public_key (STD-034) — a Keeper has no
+    // profile message of its own, so this is the only channel a verifier
+    // has for the key that checks this Keeper's DELIVERY_RECEIPT signatures.
+    return json(
+      {
+        service: 'rackp-keeper',
+        role: 'KEEPER',
+        receiver_id: env.KEEPER_TERMINAL_ID,
+        public_key: publicKeyFromSigningKey(env.KEEPER_SIGNING_KEY),
+        binding: 'https://github.com/rackp-io/rackp/blob/main/docs/TRANSPORT-BINDING.md',
+        accepts: [
+          'CLAIM_ANCHOR', 'VERIFICATION_QUERY', 'ANCHOR_CHAIN_QUERY', 'REFEREE_STATS_QUERY', 'FEE_DEPOSIT',
+          'FEE_STATUS_QUERY', 'INCIDENT_NOTICE', 'REFEREE_PROFILE', 'REFEREE_DISCOVERY_REQUEST',
+          'FEE_CLAIM', 'FEE_RECEIPT', 'FEE_REFUND_CLAIM',
+          'ACTOR_NOTIFICATION', 'EVIDENCE_QUERY_REQUEST', 'CONTRIBUTION_RESULT', 'POH_CERTIFICATE',
+          'MAILBOX_QUERY',
+        ],
+      },
+      200,
+    );
+  }
+  if (request.method !== 'POST') {
+    return json({ error: 'method not allowed' }, 405);
+  }
+  return handlePost(request, env);
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // An application/json body is not a simple request, so every POST from a
-    // browser is preceded by this.
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS });
+    try {
+      return await route(request, env);
+    } catch (error) {
+      // Deliberately unsigned. Signing is one of the things that can fail here
+      // — a malformed or missing KEEPER_SIGNING_KEY throws inside
+      // signedRejection itself — so a rejection that had to be signed could
+      // not report the failure it was reporting on.
+      //
+      // The headers are the point. Without them the runtime's own error page
+      // reaches a browser as a cross-origin failure, and the caller reads
+      // "the Keeper refused my origin" when the Keeper is simply broken.
+      // Origin is not a boundary here: every message is signed and authorized
+      // on its own contents, so these headers carry delivery, not security.
+      console.error(error);
+      return json({ error: 'internal error' }, 500);
     }
-    if (request.method === 'GET') {
-      // TRANSPORT-BINDING §1: GET {endpoint} MUST return a capability summary
-      // carrying receiver_id and public_key (STD-034) — a Keeper has no
-      // profile message of its own, so this is the only channel a verifier
-      // has for the key that checks this Keeper's DELIVERY_RECEIPT signatures.
-      return json(
-        {
-          service: 'rackp-keeper',
-          role: 'KEEPER',
-          receiver_id: env.KEEPER_TERMINAL_ID,
-          public_key: publicKeyFromSigningKey(env.KEEPER_SIGNING_KEY),
-          binding: 'https://github.com/rackp-io/rackp/blob/main/docs/TRANSPORT-BINDING.md',
-          accepts: [
-            'CLAIM_ANCHOR', 'VERIFICATION_QUERY', 'ANCHOR_CHAIN_QUERY', 'REFEREE_STATS_QUERY', 'FEE_DEPOSIT',
-            'FEE_STATUS_QUERY', 'INCIDENT_NOTICE', 'REFEREE_PROFILE', 'REFEREE_DISCOVERY_REQUEST',
-            'FEE_CLAIM', 'FEE_RECEIPT', 'FEE_REFUND_CLAIM',
-            'ACTOR_NOTIFICATION', 'EVIDENCE_QUERY_REQUEST', 'CONTRIBUTION_RESULT', 'POH_CERTIFICATE',
-            'MAILBOX_QUERY',
-          ],
-        },
-        200,
-      );
-    }
-    if (request.method !== 'POST') {
-      return json({ error: 'method not allowed' }, 405);
-    }
-    return handlePost(request, env);
   },
 
   async scheduled(_event: ScheduledEvent, env: Env): Promise<void> {
