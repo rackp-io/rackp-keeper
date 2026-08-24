@@ -226,6 +226,7 @@ const referee = await terminal();
 // ── referee profile / discovery / stats ─────────────────────────────────────
 const profile = {
   type: 'REFEREE_PROFILE',
+  rackp_version: '0.2.0-alpha',
   network: 'TESTNET',
   referee_id: referee.id,
   public_key: referee.publicKey,
@@ -481,7 +482,7 @@ const certId = `CERT-${incident}-0001`;
 
   // Publish its profile (carrying public_key). The Keeper registers the key.
   const p = {
-    type: 'REFEREE_PROFILE', network: 'TESTNET', referee_id: splitReferee.id,
+    type: 'REFEREE_PROFILE', rackp_version: '0.2.0-alpha', network: 'TESTNET', referee_id: splitReferee.id,
     public_key: splitReferee.publicKey, endpoint: 'https://split.referee.rackp.io',
     keeper_endpoint: 'https://kr.rackp.io',
     conduct_norms: [{ jurisdiction_code: 'GLOBAL', domain: 'general', norm_profile_id: 'rackp.standard.v1' }],
@@ -528,7 +529,7 @@ const certId = `CERT-${incident}-0001`;
   // Referee -> PROTOCOL_REJECTED. Authentication alone is not authorization.
   const otherReferee = await terminal();
   const op = {
-    type: 'REFEREE_PROFILE', network: 'TESTNET', referee_id: otherReferee.id,
+    type: 'REFEREE_PROFILE', rackp_version: '0.2.0-alpha', network: 'TESTNET', referee_id: otherReferee.id,
     public_key: otherReferee.publicKey, endpoint: 'https://other.rackp.io',
     keeper_endpoint: 'https://kr.rackp.io',
     conduct_norms: [{ jurisdiction_code: 'GLOBAL', domain: 'general', norm_profile_id: 'rackp.standard.v1' }],
@@ -637,11 +638,12 @@ const certId = `CERT-${incident}-0001`;
 {
   const cert_id = randomUUID();
   const certBody = {
-    type: 'POH_CERTIFICATE', cert_id, issue_date: now(), referee_id: referee.id,
+    type: 'POH_CERTIFICATE', rackp_version: '0.2.0-alpha', cert_id, issue_date: now(), referee_id: referee.id,
     subject_terminal_id: claimant.id,
     anchor_range: { start: now(), end: now() },
     provenance: { human_ratio: 0.8, ai_ratio: 0.2, confidence_level: 'MEDIUM' },
-    keeper: { keeper_id: KEEPER_TERMINAL_ID },
+    norms_used: [{ profile_id: 'rackp.standard.v1', applied_document_hash: sha256hex('norm-profile-document') }],
+    keeper: { keeper_id: KEEPER_TERMINAL_ID, keeper_endpoint: BASE_URL, keeper_public_key: KEEPER_PUBLIC_KEY },
     subject_data_hash: sha256hex('artifact-bytes'),
     cert_url: 'https://referee.rackp.io/certs/' + cert_id,
     proof_hash: sha256hex('proof'),
