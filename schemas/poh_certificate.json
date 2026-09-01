@@ -10,8 +10,8 @@
       "const": "POH_CERTIFICATE"
     },
     "rackp_version": {
-      "type": "string",
-      "description": "Version of the RACK Protocol specification the issuing implementation follows (e.g. 0.2.0-alpha). The specification is versioned as a whole and each version is a signed tag on the specification repository, so this value resolves to exact normative text. issue_date does not substitute for it: a date records what the specification said, not what the issuing implementation had adopted, and RFC-0001 Section 10 leaves migration to each implementor's discretion."
+      "$ref": "common.json#/$defs/rackp_version",
+      "description": "Version of the RACK Protocol specification the issuing implementation follows. issue_date does not substitute for it: a date records what the specification said, not what the issuing implementation had adopted, and RFC-0001 Section 10 leaves migration to each implementor's discretion."
     },
     "cert_id": {
       "$ref": "common.json#/$defs/uuid",

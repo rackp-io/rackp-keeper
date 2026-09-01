@@ -44,6 +44,28 @@
       "canonical": "{\"n\":[0,-1,1,42]}"
     },
     {
+      "description": "numbers: below Python's exponential threshold but above ECMAScript's (rackp-claimant-krita#1)",
+      "input": {
+        "n": [
+          0.0001,
+          1e-05,
+          1.2345e-05,
+          1.5e-05
+        ]
+      },
+      "canonical": "{\"n\":[0.0001,0.00001,0.000012345,0.000015]}"
+    },
+    {
+      "description": "numbers: below both thresholds, exponent has no leading zero",
+      "input": {
+        "n": [
+          1e-07,
+          -1.5e-05
+        ]
+      },
+      "canonical": "{\"n\":[1e-7,-0.000015]}"
+    },
+    {
       "description": "empty containers and empty string",
       "input": {
         "empty_obj": {},

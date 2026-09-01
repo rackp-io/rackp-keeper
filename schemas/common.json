@@ -31,6 +31,11 @@
     "public_key": {
       "type": "string",
       "description": "Ed25519 public key. Unpadded Base64url encoded (no '=' padding). In CLAIM_ANCHOR, included only where sequence_number == 1; the Keeper stores this in association with the terminal_id."
+    },
+    "rackp_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.]+)?$",
+      "description": "Version of the RACK Protocol specification an implementation follows (e.g. 0.2.0-alpha). The specification is versioned as a whole, and each version is a signed git tag on the specification repository. The value is the tag name without its leading 'v', so it resolves to exact normative text."
     }
   }
 }

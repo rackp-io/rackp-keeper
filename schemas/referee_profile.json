@@ -12,8 +12,8 @@
       "description": "The network on which this Referee operates. CONTRIBUTION_RESULTs issued by a TESTNET Referee MUST NOT be used as production evidence. Claimants use this as a filtering condition. Additional network types (e.g., STAGING, PRIVATE) are not defined by this version of the protocol; extensions are left to community discussion."
     },
     "rackp_version": {
-      "type": "string",
-      "description": "Version of the RACK Protocol specification this Referee implements (e.g. 0.2.0-alpha). The specification is versioned as a whole and each version is a signed tag on the specification repository. Declared here so a prospective Claimant can read the Referee's conformance before filing, and recorded again on each issued artifact."
+      "$ref": "common.json#/$defs/rackp_version",
+      "description": "Version of the RACK Protocol specification this Referee implements. Declared here so a prospective Claimant can read the Referee's conformance before filing, and recorded again on each issued artifact."
     },
     "referee_id": { "$ref": "common.json#/$defs/terminal_id" },
     "public_key": {

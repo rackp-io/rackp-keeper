@@ -19,7 +19,13 @@ as a real terminal identity; a Keeper SHOULD reject registration of these keys.
 3. **Signatures** — Ed25519 over the JCS canonicalization of the message body
    (all fields except `signature`), encoded as **unpadded Base64url** (no `=`
    padding). Public keys use the same encoding. (`signature.json`,
-   `claim_anchor.json`)
+   `claim_anchor.json`, `proof_hash.json`)
+4. **`proof_hash`** — SHA-256 over the JCS canonicalization of the artifact with
+   `proof_hash` itself absent from the object being canonicalized (not `null`,
+   not an empty string — the key is not there). On `CONTRIBUTION_RESULT` this
+   is a nested exclusion (`assessment.certification.proof_hash`, two levels
+   down); on `POH_CERTIFICATE` it is a top-level field, alongside `signature`.
+   (`proof_hash.json`)
 
 ## Files
 
@@ -28,6 +34,7 @@ as a real terminal identity; a Keeper SHOULD reject registration of these keys.
 | `jcs.json` | Key ordering (UTF-16 code units), escapes, non-ASCII, numbers, empty containers |
 | `signature.json` | Key derivation, body canonicalization, signature bytes and encoding |
 | `claim_anchor.json` | The full pipeline end to end, including every intermediate value |
+| `proof_hash.json` | The nested (`CONTRIBUTION_RESULT`) and top-level (`POH_CERTIFICATE`) `proof_hash` exclusion rules |
 
 ## How to use
 

@@ -1,0 +1,221 @@
+{
+  "description": "proof_hash known-answer vectors (rackp#18). Each field is SHA-256 (lowercase hex) of the JCS canonical form of the artifact with proof_hash itself absent -- not null, not an empty string, simply not a key in the object being canonicalized -- and, for 'contribution_result', with signature also absent (it is only added afterward, once proof_hash is known). 'contribution_result' exercises a NESTED exclusion (assessment.certification.proof_hash, two levels down, with the rest of 'certification' and 'assessment' otherwise present); 'poh_certificate' exercises a top-level exclusion (proof_hash sits beside signature, not nested). An implementation conforms if it reproduces 'proof_hash' from '*_without_proof_hash', and 'signature' by then signing the canonical form of the artifact WITH proof_hash filled in (the full document, still minus signature).",
+  "secret_key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+  "vectors": [
+    {
+      "description": "CONTRIBUTION_RESULT: nested exclusion at assessment.certification.proof_hash",
+      "artifact_without_proof_hash": {
+        "type": "CONTRIBUTION_RESULT",
+        "network": "TESTNET",
+        "rackp_version": "0.0.0-example",
+        "incident_id": "44444444-4444-4444-8444-444444444444",
+        "referee_id": "55555555-5555-4555-8555-555555555555",
+        "referee_reputation_snapshot": {
+          "total_assessments": 1,
+          "snapshot_timestamp": "2026-01-01T00:00:00Z"
+        },
+        "assessment": {
+          "factual_findings": "Both parties' anchor chains verified against submitted evidence.",
+          "fault": {
+            "actor_fault": 0.5,
+            "claimant_fault": 0.5,
+            "external_factor": 0.0,
+            "confidence": "HIGH"
+          },
+          "evidence_sufficiency": {
+            "assessment_status": "DEFINITIVE",
+            "actor_coverage": "MEDIUM",
+            "claimant_coverage": "MEDIUM"
+          },
+          "fee_compliance": {
+            "actor_fee_status": "DEPOSITED",
+            "claimant_fee_status": "DEPOSITED",
+            "fee_snapshot": {
+              "total_amount": 100.0,
+              "claimant_expected": 100.0,
+              "actor_expected": 100.0,
+              "currency": "USD"
+            }
+          },
+          "actor_participation": {
+            "status": "NOT_APPLICABLE"
+          },
+          "provenance_score": {
+            "actor_provenance": {
+              "human_ratio": 0.2,
+              "ai_ratio": 0.8
+            },
+            "claimant_provenance": {
+              "human_ratio": 0.1,
+              "ai_ratio": 0.9
+            },
+            "confidence_level": "HIGH"
+          },
+          "norms_used": [
+            {
+              "profile_id": "rackp.standard.v1",
+              "applied_document_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "declared_document_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          ],
+          "detailed_report": {
+            "report_url": "https://rackp.example/reports/44444444-4444-4444-8444-444444444444",
+            "report_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "certification": {
+            "cert_id": "CERT-44444444-20260101000000-0001",
+            "issue_date": "2026-01-01T00:00:00Z",
+            "cert_url": "https://rackp.example/verify/CERT-44444444-20260101000000-0001"
+          }
+        },
+        "evidence_provenance": "actor=VERIFIED, claimant=VERIFIED",
+        "additional_appeal_limit_datetime": "2026-01-04T00:00:00Z",
+        "prior_assessment_count": 0,
+        "timestamp": "2026-01-01T00:00:00Z"
+      },
+      "canonical_without_proof_hash": "{\"additional_appeal_limit_datetime\":\"2026-01-04T00:00:00Z\",\"assessment\":{\"actor_participation\":{\"status\":\"NOT_APPLICABLE\"},\"certification\":{\"cert_id\":\"CERT-44444444-20260101000000-0001\",\"cert_url\":\"https://rackp.example/verify/CERT-44444444-20260101000000-0001\",\"issue_date\":\"2026-01-01T00:00:00Z\"},\"detailed_report\":{\"report_hash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"report_url\":\"https://rackp.example/reports/44444444-4444-4444-8444-444444444444\"},\"evidence_sufficiency\":{\"actor_coverage\":\"MEDIUM\",\"assessment_status\":\"DEFINITIVE\",\"claimant_coverage\":\"MEDIUM\"},\"factual_findings\":\"Both parties' anchor chains verified against submitted evidence.\",\"fault\":{\"actor_fault\":0.5,\"claimant_fault\":0.5,\"confidence\":\"HIGH\",\"external_factor\":0},\"fee_compliance\":{\"actor_fee_status\":\"DEPOSITED\",\"claimant_fee_status\":\"DEPOSITED\",\"fee_snapshot\":{\"actor_expected\":100,\"claimant_expected\":100,\"currency\":\"USD\",\"total_amount\":100}},\"norms_used\":[{\"applied_document_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"declared_document_hash\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"profile_id\":\"rackp.standard.v1\"}],\"provenance_score\":{\"actor_provenance\":{\"ai_ratio\":0.8,\"human_ratio\":0.2},\"claimant_provenance\":{\"ai_ratio\":0.9,\"human_ratio\":0.1},\"confidence_level\":\"HIGH\"}},\"evidence_provenance\":\"actor=VERIFIED, claimant=VERIFIED\",\"incident_id\":\"44444444-4444-4444-8444-444444444444\",\"network\":\"TESTNET\",\"prior_assessment_count\":0,\"rackp_version\":\"0.0.0-example\",\"referee_id\":\"55555555-5555-4555-8555-555555555555\",\"referee_reputation_snapshot\":{\"snapshot_timestamp\":\"2026-01-01T00:00:00Z\",\"total_assessments\":1},\"timestamp\":\"2026-01-01T00:00:00Z\",\"type\":\"CONTRIBUTION_RESULT\"}",
+      "proof_hash": "ed6b4e78c110707510677ec830e0ecb1ba59154635a3772d44182afb7c5c0e36",
+      "signature": "BfsWTH1fZbHGvUCRapdkIFVDWOYeyNggdwTj0VFaiyljQI5fNlYZFYC0nh_cX9C5UvPwOACexyaOH3h7Crc6BA",
+      "artifact": {
+        "additional_appeal_limit_datetime": "2026-01-04T00:00:00Z",
+        "assessment": {
+          "actor_participation": {
+            "status": "NOT_APPLICABLE"
+          },
+          "certification": {
+            "cert_id": "CERT-44444444-20260101000000-0001",
+            "cert_url": "https://rackp.example/verify/CERT-44444444-20260101000000-0001",
+            "issue_date": "2026-01-01T00:00:00Z",
+            "proof_hash": "ed6b4e78c110707510677ec830e0ecb1ba59154635a3772d44182afb7c5c0e36"
+          },
+          "detailed_report": {
+            "report_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "report_url": "https://rackp.example/reports/44444444-4444-4444-8444-444444444444"
+          },
+          "evidence_sufficiency": {
+            "actor_coverage": "MEDIUM",
+            "assessment_status": "DEFINITIVE",
+            "claimant_coverage": "MEDIUM"
+          },
+          "factual_findings": "Both parties' anchor chains verified against submitted evidence.",
+          "fault": {
+            "actor_fault": 0.5,
+            "claimant_fault": 0.5,
+            "confidence": "HIGH",
+            "external_factor": 0
+          },
+          "fee_compliance": {
+            "actor_fee_status": "DEPOSITED",
+            "claimant_fee_status": "DEPOSITED",
+            "fee_snapshot": {
+              "actor_expected": 100,
+              "claimant_expected": 100,
+              "currency": "USD",
+              "total_amount": 100
+            }
+          },
+          "norms_used": [
+            {
+              "applied_document_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "declared_document_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "profile_id": "rackp.standard.v1"
+            }
+          ],
+          "provenance_score": {
+            "actor_provenance": {
+              "ai_ratio": 0.8,
+              "human_ratio": 0.2
+            },
+            "claimant_provenance": {
+              "ai_ratio": 0.9,
+              "human_ratio": 0.1
+            },
+            "confidence_level": "HIGH"
+          }
+        },
+        "evidence_provenance": "actor=VERIFIED, claimant=VERIFIED",
+        "incident_id": "44444444-4444-4444-8444-444444444444",
+        "network": "TESTNET",
+        "prior_assessment_count": 0,
+        "rackp_version": "0.0.0-example",
+        "referee_id": "55555555-5555-4555-8555-555555555555",
+        "referee_reputation_snapshot": {
+          "snapshot_timestamp": "2026-01-01T00:00:00Z",
+          "total_assessments": 1
+        },
+        "timestamp": "2026-01-01T00:00:00Z",
+        "type": "CONTRIBUTION_RESULT",
+        "signature": "BfsWTH1fZbHGvUCRapdkIFVDWOYeyNggdwTj0VFaiyljQI5fNlYZFYC0nh_cX9C5UvPwOACexyaOH3h7Crc6BA"
+      }
+    },
+    {
+      "description": "POH_CERTIFICATE: top-level exclusion, proof_hash beside signature",
+      "artifact_without_proof_hash": {
+        "type": "POH_CERTIFICATE",
+        "rackp_version": "0.0.0-example",
+        "cert_id": "66666666-6666-4666-8666-666666666666",
+        "issue_date": "2026-01-01T00:00:00Z",
+        "referee_id": "55555555-5555-4555-8555-555555555555",
+        "subject_terminal_id": "11111111-1111-4111-8111-111111111111",
+        "anchor_range": {
+          "start": "2026-01-01T00:00:00Z",
+          "end": "2026-01-01T00:05:00Z"
+        },
+        "provenance": {
+          "human_ratio": 1.0,
+          "ai_ratio": 0.0,
+          "confidence_level": "HIGH"
+        },
+        "norms_used": [
+          {
+            "profile_id": "rackp.standard.v1",
+            "applied_document_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "declared_document_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "keeper": {
+          "keeper_id": "77777777-7777-4777-8777-777777777777",
+          "keeper_public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+        },
+        "subject_data_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "cert_url": "https://rackp.example/phi/66666666-6666-4666-8666-666666666666"
+      },
+      "canonical_without_proof_hash": "{\"anchor_range\":{\"end\":\"2026-01-01T00:05:00Z\",\"start\":\"2026-01-01T00:00:00Z\"},\"cert_id\":\"66666666-6666-4666-8666-666666666666\",\"cert_url\":\"https://rackp.example/phi/66666666-6666-4666-8666-666666666666\",\"issue_date\":\"2026-01-01T00:00:00Z\",\"keeper\":{\"keeper_id\":\"77777777-7777-4777-8777-777777777777\",\"keeper_public_key\":\"A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg\"},\"norms_used\":[{\"applied_document_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"declared_document_hash\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"profile_id\":\"rackp.standard.v1\"}],\"provenance\":{\"ai_ratio\":0,\"confidence_level\":\"HIGH\",\"human_ratio\":1},\"rackp_version\":\"0.0.0-example\",\"referee_id\":\"55555555-5555-4555-8555-555555555555\",\"subject_data_hash\":\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"subject_terminal_id\":\"11111111-1111-4111-8111-111111111111\",\"type\":\"POH_CERTIFICATE\"}",
+      "proof_hash": "ed67097df3daf9877b5e5acade8f9548a0f807b1aa6667429b14f5ceebe9cba9",
+      "signature": "P6yfwluqMWMeedr0GBfw3QsMtlJTXDAMSJvdMBu93IrSECxNtSmu5qm-iyZA-kC2pNmADjG6vE0CLWfbDNQqBg",
+      "artifact": {
+        "anchor_range": {
+          "end": "2026-01-01T00:05:00Z",
+          "start": "2026-01-01T00:00:00Z"
+        },
+        "cert_id": "66666666-6666-4666-8666-666666666666",
+        "cert_url": "https://rackp.example/phi/66666666-6666-4666-8666-666666666666",
+        "issue_date": "2026-01-01T00:00:00Z",
+        "keeper": {
+          "keeper_id": "77777777-7777-4777-8777-777777777777",
+          "keeper_public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+        },
+        "norms_used": [
+          {
+            "applied_document_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "declared_document_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "profile_id": "rackp.standard.v1"
+          }
+        ],
+        "provenance": {
+          "ai_ratio": 0,
+          "confidence_level": "HIGH",
+          "human_ratio": 1
+        },
+        "rackp_version": "0.0.0-example",
+        "referee_id": "55555555-5555-4555-8555-555555555555",
+        "subject_data_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "subject_terminal_id": "11111111-1111-4111-8111-111111111111",
+        "type": "POH_CERTIFICATE",
+        "proof_hash": "ed67097df3daf9877b5e5acade8f9548a0f807b1aa6667429b14f5ceebe9cba9",
+        "signature": "P6yfwluqMWMeedr0GBfw3QsMtlJTXDAMSJvdMBu93IrSECxNtSmu5qm-iyZA-kC2pNmADjG6vE0CLWfbDNQqBg"
+      }
+    }
+  ]
+}

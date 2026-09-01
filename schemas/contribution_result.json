@@ -12,8 +12,8 @@
       "description": "The network to which this assessment belongs. TESTNET results MUST NOT be registered in or referenced from the production evidence chain. The Keeper validates the network before deciding whether to record the result in the ledger. Additional network types (e.g., STAGING, PRIVATE) are not defined by this version of the protocol; extensions are left to community discussion."
     },
     "rackp_version": {
-      "type": "string",
-      "description": "Version of the RACK Protocol specification the issuing implementation follows (e.g. 0.2.0-alpha). The specification is versioned as a whole and each version is a signed tag on the specification repository, so this value resolves to exact normative text. issue_date does not substitute for it: a date records what the specification said, not what the issuing implementation had adopted, and RFC-0001 Section 10 leaves migration to each implementor's discretion."
+      "$ref": "common.json#/$defs/rackp_version",
+      "description": "Version of the RACK Protocol specification the issuing implementation follows. issue_date does not substitute for it: a date records what the specification said, not what the issuing implementation had adopted, and RFC-0001 Section 10 leaves migration to each implementor's discretion."
     },
     "incident_id": {
       "$ref": "common.json#/$defs/uuid"
@@ -68,8 +68,25 @@
         },
         "technical_violation": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "List of technical norms or protocols that were violated"
+          "description": "Genuine integrity/protocol violations detected during assessment (e.g. a payload hash that does not match its anchored data_hash), each resolved to the Norm Profile it was found under. A bare norm_id does not identify a norm on its own: norm_id is unique only within a profile, and Section 9.1 has every profile layer on the Standard Norm, so more than one profile in play is the normal case. Never used for fee non-payment or Actor non-participation, which are disclosed via fee_compliance and actor_participation instead (Section 7).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "profile_id": {
+                "type": "string",
+                "description": "The Norm Profile that norm_id is defined in."
+              },
+              "norm_id": {
+                "type": "string",
+                "description": "The violated norm's identifier within profile_id."
+              },
+              "detail": {
+                "type": "string",
+                "description": "(Optional) Human-readable specifics of the violation (e.g. the computed vs. reported hash)."
+              }
+            },
+            "required": ["profile_id", "norm_id"]
+          }
         },
         "provenance_score": {
           "type": "object",
@@ -247,12 +264,29 @@
         },
         "norms_used": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "List of Local Norm profile IDs (reverse-domain notation, e.g., 'jp.go.mlit.automotive.v1') used as the basis for this assessment. The Referee MUST include this field."
+          "description": "The Norm Profile(s) used as the basis for this assessment. The Referee MUST include this field. Same shape as POH_CERTIFICATE.norms_used (Section 8.4): one entry per applied profile, carrying the hash of the document actually applied so a ratio or fault value is not read against a name whose text can drift under it.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "profile_id": {
+                "type": "string",
+                "description": "Reverse-domain identifier of the applied Norm Profile (e.g., 'jp.go.mlit.automotive.v1')."
+              },
+              "applied_document_hash": {
+                "$ref": "common.json#/$defs/sha256_hash",
+                "description": "SHA-256 of the RFC 8785 (JCS) canonical form of the profile document the Referee actually retrieved and applied. Recorded per profile rather than as one digest over the set, so a profile still retrievable stays verifiable when another issuer's document is gone. profile_version is not recorded separately: this hash pins the document, and the version is inside the document it pins."
+              },
+              "declared_document_hash": {
+                "$ref": "common.json#/$defs/sha256_hash",
+                "description": "(Optional) The hash the subject declared at SESSION_START, when one was declared (Section 9.3). Present so a divergence from applied_document_hash is visible in the result itself. The Referee records both values and draws no conclusion from a difference, exactly as with norm_jurisdiction_mismatch."
+              }
+            },
+            "required": ["profile_id", "applied_document_hash"]
+          }
         },
         "norm_jurisdiction_mismatch": {
           "type": "string",
-          "description": "(Optional) Description of any discrepancy between the declared Norm Profile's jurisdiction/domain and the actual characteristics of the incident. SHOULD include a description of the Norm Profile the Referee would have selected based on the incident's actual context. This record does not invalidate the assessment; it is material for post-hoc verification of Norm selection appropriateness. See Section 9.4."
+          "description": "(Optional) Description of any discrepancy between the declared Norm Profile's jurisdiction/domain and the actual characteristics of the incident. SHOULD include a description of the Norm Profile the Referee would have selected based on the incident's actual context. This record does not invalidate the assessment; it is material for post-hoc verification of Norm selection appropriateness. See Section 9.5."
         }
       },
       "required": ["factual_findings", "fault", "provenance_score", "detailed_report", "evidence_sufficiency", "fee_compliance", "actor_participation", "norms_used", "certification"]
