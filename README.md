@@ -86,10 +86,12 @@ to point at another instance.
 
 ## License
 
-The source code in this repository is available under the
-[RACKP Reference Implementation License](LICENSE) — free to use, modify,
-and redistribute, with no patent license granted. Implementing, deploying,
-or operating the RACK Protocol, whether with this software or any other
-implementation, is governed by the
-[RACK Protocol Source-Available License](https://github.com/rackp-io/rackp/blob/main/LICENSE).
+The source code in this repository is licensed under the
+[Apache License, Version 2.0](LICENSE). Operating a Keeper needs no further
+license: RACKP's
+[patent commitment](https://github.com/rackp-io/rackp/blob/main/PATENTS.md)
+covers implementing and operating Keeper, Actor, and Claimant nodes. The
+one licensed act in the RACK Protocol is issuing assessment artifacts as a
+Referee operator, under the
+[RACK Protocol License](https://github.com/rackp-io/rackp/blob/main/LICENSE).
 Patent pending.
